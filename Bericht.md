@@ -26,6 +26,14 @@ Code
 
 So hats geklappt
 
+### Ausführung Befehle
+
+java -jar antlr-4.x-complete.jar OpeningTimesLexer.g4
+
+javac -cp .:antlr-4.x-complete.jar TokenPrinter.java
+
+java -cp .:antlr-4.x-complete.jar TokenPrinter
+
 ### Ausgabe des Programms
 
 'Bild'
