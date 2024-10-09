@@ -19,7 +19,34 @@ Welche Vokabular-Kategorien von Folie 2-4 kommen im Text vor? Bedenken Sie dazu,
 ### Lösung Code
 
 ```
-Code
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+
+import java.io.IOException;
+
+public class TokenPrinter {
+    public static void main(String[] args) {
+        try {
+            CharStream input = CharStreams.fromFileName("input.txt");
+
+            OpeningTimesLexer lexer = new OpeningTimesLexer(input);
+
+            TokenStream tokens = new CommonTokenStream(lexer);
+
+            Token token;
+            while ((token = lexer.nextToken()).getType() != Token.EOF) {
+                String tokenType = lexer.getVocabulary().getSymbolicName(token.getType());
+                String tokenText = token.getText();
+                System.out.println("Token Type: " + tokenType + ", Token Text: " + tokenText);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
 ```
 
 ### Erklärung
@@ -36,7 +63,15 @@ java -cp .:antlr-4.x-complete.jar TokenPrinter
 
 ### Ausgabe des Programms
 
-'Bild'
+``````
+Token Type: ID, Token Text: Restaurant
+Token Type: ID, Token Text: Schwedenschenke
+Token Type: DATE, Token Text: 15. März
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 20. Oktober
+Token Type: KW_MITTWOCH, Token Text: Mittwoch
+...
+``````
 
 ## Aufgabe 2
 
