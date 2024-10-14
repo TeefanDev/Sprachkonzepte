@@ -19,10 +19,10 @@ KW_BEI : 'bei' ;
 KW_GUTEM_WETTER : 'gutem Wetter' ;
 KW_UHR : 'Uhr' ;
 
-DATE : [0-9]{1,2} '.' [A-Z][a-zäöüß]+ ;
-TIME : [0-9]{1,2} '.' [0-9]{2} 'Uhr' ;
 NUMBER : [0-9]+ ;
-ID : [A-Za-zäöüÄÖÜß]+ ;
+DATE : NUMBER '.' [A-Z][a-z]+ ;
+TIME : NUMBER '.' NUMBER 'Uhr' ;
+ID : [A-Za-z]+ ;
 DOT : '.' ;
 COMMA : ',' ;
 MINUS : '-' ;
