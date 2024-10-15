@@ -20,9 +20,9 @@ KW_GUTEM_WETTER : 'gutem Wetter' ;
 KW_UHR : 'Uhr' ;
 
 NUMBER : [0-9]+ ;
-DATE : NUMBER '.' [A-Z][a-z]+ ;
-TIME : NUMBER '.' NUMBER 'Uhr' ;
-ID : [A-Za-z]+ ;
+DATE : NUMBER '. ' [A-Z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF][a-z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF]+ ;
+TIME : NUMBER '.' NUMBER ' Uhr'? ;
+ID : [a-zA-Z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF\u00E9]+ ;
 DOT : '.' ;
 COMMA : ',' ;
 MINUS : '-' ;

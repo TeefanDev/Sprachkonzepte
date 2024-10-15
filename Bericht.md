@@ -18,6 +18,8 @@ Welche Vokabular-Kategorien von Folie 2-4 kommen im Text vor? Bedenken Sie dazu,
 
 ### Lösung Code
 
+TokenPrinter.java:
+
 ```
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -30,12 +32,16 @@ import java.io.IOException;
 public class TokenPrinter {
     public static void main(String[] args) {
         try {
-            CharStream input = CharStreams.fromFileName("input.txt");
+            // Lese den Text von der Konsole oder aus einer Datei
+            CharStream input = CharStreams.fromFileName("mainau-gatronomie.txt");
 
+            // Erstelle eine Instanz des Lexers mit dem Eingabetext
             OpeningTimesLexer lexer = new OpeningTimesLexer(input);
 
+            // Erstelle einen TokenStream, um die Token zu verarbeiten
             TokenStream tokens = new CommonTokenStream(lexer);
 
+            // Schleife durch die Token und gib sie aus
             Token token;
             while ((token = lexer.nextToken()).getType() != Token.EOF) {
                 String tokenType = lexer.getVocabulary().getSymbolicName(token.getType());
@@ -49,9 +55,45 @@ public class TokenPrinter {
 }
 ```
 
+OpeningTimesLexer.g4:
+
+```
+lexer grammar OpeningTimesLexer;
+
+WHITESPACE : [ \t\r\n]+ -> skip ;
+
+KW_BIS : 'bis' ;
+KW_TAEGLICH : 'täglich' ;
+KW_RUHETAG : 'Ruhetag' ;
+KW_AN : 'an' ;
+KW_FREITAG : 'Freitag' ;
+KW_MONTAG : 'Montag' ;
+KW_DIENSTAG : 'Dienstag' ;
+KW_MITTWOCH : 'Mittwoch' ;
+KW_DONNERSTAG : 'Donnerstag' ;
+KW_SAMSTAG : 'Samstag' ;
+KW_SONNTAG : 'Sonntag' ;
+KW_VORUEBERGEHEND : 'vorübergehend' ;
+KW_GESCHLOSSEN : 'geschlossen' ;
+KW_BEI : 'bei' ;
+KW_GUTEM_WETTER : 'gutem Wetter' ;
+KW_UHR : 'Uhr' ;
+
+NUMBER : [0-9]+ ;
+DATE : NUMBER '. ' [A-Z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF][a-z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF]+ ;
+TIME : NUMBER '.' NUMBER ' Uhr'? ;
+ID : [a-zA-Z\u00E4\u00F6\u00FC\u00C4\u00D6\u00DC\u00DF\u00E9]+ ;
+DOT : '.' ;
+COMMA : ',' ;
+MINUS : '-' ;
+COLON : ':' ;
+```
+
 ### Erklärung
 
-In dieser Aufgabe haben wir einen Lexer mithilfe von ANTLR4 erstellt, um die Öffnungszeiten von Restaurants aus einem Text in einzelne Token zu zerlegen. Zuerst haben wir eine Grammatikdatei (.g4) geschrieben, die festlegt, wie verschiedene Textbestandteile wie Schlüsselwörter, Datumsangaben, Uhrzeiten und Trennzeichen erkannt werden. Die Grammatik beschreibt die Regeln, um Bezeichner, Literale und Operatoren zu unterscheiden. Anschließend haben wir den Lexer in Java generiert und eine Anwendung erstellt, die den Lexer verwendet, um den Text zu verarbeiten. Der Lexer liest den Text ein und zerlegt ihn in Token, die dann in einer bestimmten Reihenfolge ausgegeben werden. Jeder Teil des Textes, wie Wochentage, Zeiträume und Sonderangaben, wird dabei als spezifischer Token klassifiziert. Zum Beispiel werden Datumsangaben als Zahlenliterale erkannt, während Wörter wie „täglich“ oder „Ruhetag“ als Schlüsselwörter eingeordnet werden. Die Ausgabe der Anwendung zeigt die Tokenfolge, die den Text strukturiert darstellt. Damit haben wir erreicht, dass auch ähnliche Texte automatisch analysiert werden können. Diese Methode hilft, die Struktur und Bedeutung von Zeitplänen aus Texten zu extrahieren.
+In dieser Aufgabe haben wir einen Lexer für die mainau-gastronomie mithilfe von ANTLR4 erstellt, um die Öffnungszeiten von Restaurants aus einem Text in einzelne Token zu zerlegen. Zuerst haben wir eine Grammatikdatei (.g4) geschrieben, die festlegt, wie verschiedene Textbestandteile wie Schlüsselwörter, Datumsangaben, Uhrzeiten und Trennzeichen erkannt werden. Die Grammatik beschreibt die Regeln, um Bezeichner, Literale und Operatoren zu unterscheiden. Anschließend haben wir den Lexer in Java generiert und eine Anwendung erstellt, die den Lexer verwendet, um den Text zu verarbeiten. Der Lexer liest den Text ein und zerlegt ihn in Token, die dann in einer bestimmten Reihenfolge ausgegeben werden. Jeder Teil des Textes, wie Wochentage, Zeiträume und Sonderangaben, wird dabei als spezifischer Token klassifiziert. Zum Beispiel werden Datumsangaben als Zahlenliterale erkannt, während Wörter wie „täglich“ oder „Ruhetag“ als Schlüsselwörter eingeordnet werden. Die Ausgabe der Anwendung zeigt die Tokenfolge, die den Text strukturiert darstellt. Damit haben wir erreicht, dass auch ähnliche Texte automatisch analysiert werden können. Diese Methode hilft, die Struktur und Bedeutung von Zeitplänen aus Texten zu extrahieren.
+
+Probleme hatten wir dabei, sonderzeichen richtig einzulesen, da diese trotz der richtigen formatierung aller dateien nicht korrekt eingelesen wurden und somit als error dargestellt wurden. Die sonderzeichen wurden bei dem Kompelieren der Grammatik datei nämlich nur als warnung angegeben weshalb dieses Problem nicht sofort aufgefallen ist. Ebenso sind Leerzeichen in der erstellung der Grammatikdatei wichtig, damit die Token korrekt ausgelesen werden.
 
 ### Ausführung Befehle
 
@@ -59,188 +101,159 @@ java -jar ../antlr-4.13.2-complete.jar OpeningTimesLexer.g4
 
 javac -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
-java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java 
+java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
 ### Ausgabe des Programms
 
 ``````
-Token Type: NUMBER, Token Text: 09
-Token Type: COLON, Token Text: :
-Token Type: NUMBER, Token Text: 45
-Token Type: ID, Token Text: Bus
-Token Type: NUMBER, Token Text: 700
-Token Type: ID, Token Text: nach
-Token Type: ID, Token Text: Bahnhof
-Token Type: COMMA, Token Text: ,
-Token Type: ID, Token Text: Ravensburg
-Token Type: ID, Token Text: Mo
-Token Type: MINUS, Token Text: -
-Token Type: ID, Token Text: Mi
-Token Type: ID, Token Text: nicht
-Token Type: NUMBER, Token Text: 20
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Mai
-Token Type: NUMBER, Token Text: 09
-Token Type: COLON, Token Text: :
-Token Type: NUMBER, Token Text: 46
-Token Type: ID, Token Text: Bus
-Token Type: NUMBER, Token Text: 1
-Token Type: ID, Token Text: nach
-Token Type: ID, Token Text: Staad
-line 5:22 token recognition error at: '/'
-Token Type: ID, Token Text: Autof
-line 5:28 token recognition error at: 'ä'
-Token Type: ID, Token Text: hre
-Token Type: COMMA, Token Text: ,
-Token Type: ID, Token Text: Konstanz
-Token Type: ID, Token Text: Mo
-Token Type: MINUS, Token Text: -
-Token Type: ID, Token Text: Fr
-Token Type: ID, Token Text: nicht
-Token Type: NUMBER, Token Text: 9
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 20
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 30
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Mai
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 3
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Okt
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 1
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Nov
-Token Type: NUMBER, Token Text: 09
-Token Type: COLON, Token Text: :
-Token Type: NUMBER, Token Text: 48
-Token Type: ID, Token Text: Bus
-Token Type: NUMBER, Token Text: 9
-Token Type: ID, Token Text: nach
-Token Type: ID, Token Text: Universit
-line 9:26 token recognition error at: 'ä'
-Token Type: ID, Token Text: t
-Token Type: COMMA, Token Text: ,
-Token Type: ID, Token Text: Konstanz
-Token Type: ID, Token Text: nicht
-Token Type: ID, Token Text: t
-line 10:7 token recognition error at: 'ä'
-Token Type: ID, Token Text: glich
-Token Type: NUMBER, Token Text: 27
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Mai
+Token Type: ID, Token Text: Restaurant
+Token Type: ID, Token Text: Schwedenschenke
+Token Type: DATE, Token Text: 15. März
 Token Type: KW_BIS, Token Text: bis
-Token Type: NUMBER, Token Text: 18
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Okt
-Token Type: NUMBER, Token Text: 2024
-Token Type: ID, Token Text: Mo
-Token Type: MINUS, Token Text: -
-Token Type: ID, Token Text: Mi
-Token Type: COMMA, Token Text: ,
-Token Type: ID, Token Text: Fr
-line 11:36 token recognition error at: ';'
-Token Type: ID, Token Text: nicht
-Token Type: NUMBER, Token Text: 3
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Jun
+Token Type: DATE, Token Text: 20. Oktober
+Token Type: KW_MITTWOCH, Token Text: Mittwoch
 Token Type: KW_BIS, Token Text: bis
-Token Type: NUMBER, Token Text: 19
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Jul
-Token Type: NUMBER, Token Text: 2024
-line 11:67 token recognition error at: ';'
-Token Type: ID, Token Text: auch
-Token Type: NUMBER, Token Text: 25
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Jul
+Token Type: KW_SONNTAG, Token Text: Sonntag
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 17.00 Uhr
+Token Type: DATE, Token Text: 1. Mai
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 8. September
+Token Type: KW_AN, Token Text: an
+Token Type: ID, Token Text: Sonn
+Token Type: MINUS, Token Text: -
+Token Type: ID, Token Text: und
+Token Type: ID, Token Text: Feiertagen
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 20.00 Uhr
+Token Type: KW_MONTAG, Token Text: Montag
 Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 1
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 8
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 15
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 22
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 29
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Aug
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 5
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 12
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 19
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 26
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Sep
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 10
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 17
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Okt
-Token Type: NUMBER, Token Text: 10
-Token Type: COLON, Token Text: :
-Token Type: NUMBER, Token Text: 00
-Token Type: ID, Token Text: KAT
-Token Type: ID, Token Text: nach
-Token Type: ID, Token Text: Friedrichshafen
+Token Type: KW_DIENSTAG, Token Text: Dienstag
+Token Type: KW_RUHETAG, Token Text: Ruhetag
+Token Type: ID, Token Text: Rothaus
+Token Type: ID, Token Text: Seeterrassen
+Token Type: DATE, Token Text: 1. Juni
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 8. September
+Token Type: ID, Token Text: täglich
+Token Type: TIME, Token Text: 9.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 20.00 Uhr
+Token Type: DATE, Token Text: 9. September
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 3. November
+Token Type: ID, Token Text: täglich
+Token Type: TIME, Token Text: 9.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 18.00 Uhr
+Token Type: ID, Token Text: Würstle
+Token Type: ID, Token Text: Grill
+Token Type: DATE, Token Text: 1. Mai
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 8. September
+Token Type: ID, Token Text: täglich
+Token Type: TIME, Token Text: 10.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 17.00 Uhr
+Token Type: DATE, Token Text: 9. September
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 20. Oktober
+Token Type: ID, Token Text: täglich
+Token Type: TIME, Token Text: 12.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 16.00 Uhr
+Token Type: ID, Token Text: Mainau
+Token Type: MINUS, Token Text: -
+Token Type: ID, Token Text: Träff
+Token Type: ID, Token Text: mit
+Token Type: ID, Token Text: Hofladen
+Token Type: ID, Token Text: vorübergehend
+Token Type: KW_GESCHLOSSEN, Token Text: geschlossen
+Token Type: ID, Token Text: Schlosscafé
+Token Type: ID, Token Text: täglich
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 17.00 Uhr
+Token Type: ID, Token Text: ab
+Token Type: DATE, Token Text: 13. Mai
+Token Type: KW_FREITAG, Token Text: Freitag
+Token Type: KW_RUHETAG, Token Text: Ruhetag
+Token Type: ID, Token Text: Biergarten
+Token Type: ID, Token Text: am
 Token Type: ID, Token Text: Hafen
-line 13:37 token recognition error at: '('
-Token Type: ID, Token Text: Schiff
-line 13:44 token recognition error at: ')'
-Token Type: ID, Token Text: t
-line 14:1 token recognition error at: 'ä'
-Token Type: ID, Token Text: glich
-Token Type: NUMBER, Token Text: 10
-Token Type: COLON, Token Text: :
-Token Type: NUMBER, Token Text: 39
-Token Type: ID, Token Text: RE
-Token Type: NUMBER, Token Text: 4720
-Token Type: ID, Token Text: nach
-Token Type: ID, Token Text: Karlsruhe
-Token Type: ID, Token Text: Hbf
-Token Type: ID, Token Text: t
-line 17:1 token recognition error at: 'ä'
-Token Type: ID, Token Text: glich
-Token Type: ID, Token Text: nicht
-Token Type: NUMBER, Token Text: 11
-Token Type: DOT, Token Text: .
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 12
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Mai
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 1
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Jun
+Token Type: DATE, Token Text: 23. März
 Token Type: KW_BIS, Token Text: bis
-Token Type: NUMBER, Token Text: 12
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Jul
-Token Type: NUMBER, Token Text: 2024
-Token Type: COMMA, Token Text: ,
-Token Type: NUMBER, Token Text: 10
-Token Type: DOT, Token Text: .
+Token Type: DATE, Token Text: 6. Oktober
+Token Type: KW_MITTWOCH, Token Text: Mittwoch
 Token Type: KW_BIS, Token Text: bis
-Token Type: NUMBER, Token Text: 30
-Token Type: DOT, Token Text: .
-Token Type: ID, Token Text: Aug
-Token Type: NUMBER, Token Text: 2024
+Token Type: KW_SONNTAG, Token Text: Sonntag
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 18.00 Uhr
+Token Type: KW_MONTAG, Token Text: Montag
+Token Type: COMMA, Token Text: ,
+Token Type: KW_DIENSTAG, Token Text: Dienstag
+Token Type: KW_RUHETAG, Token Text: Ruhetag
+Token Type: ID, Token Text: Bäckerei
+Token Type: ID, Token Text: Täglich
+Token Type: ID, Token Text: Brot
+Token Type: DATE, Token Text: 1. Mai
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 6. Oktober
+Token Type: KW_FREITAG, Token Text: Freitag
+Token Type: KW_BIS, Token Text: bis
+Token Type: KW_DIENSTAG, Token Text: Dienstag
+Token Type: TIME, Token Text: 10.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 17.00 Uhr
+Token Type: DATE, Token Text: 7. Oktober
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 20. Oktober
+Token Type: KW_FREITAG, Token Text: Freitag
+Token Type: KW_BIS, Token Text: bis
+Token Type: KW_DIENSTAG, Token Text: Dienstag
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 16.00 Uhr
+Token Type: KW_MITTWOCH, Token Text: Mittwoch
+Token Type: COMMA, Token Text: ,
+Token Type: KW_DONNERSTAG, Token Text: Donnerstag
+Token Type: KW_RUHETAG, Token Text: Ruhetag
+Token Type: ID, Token Text: Eisdiele
+Token Type: ID, Token Text: am
+Token Type: ID, Token Text: Hafen
+Token Type: DATE, Token Text: 23. März
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 6. Oktober
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 17.00 Uhr
+Token Type: KW_BEI, Token Text: bei
+Token Type: KW_GUTEM_WETTER, Token Text: gutem Wetter
+Token Type: ID, Token Text: Imbiss
+Token Type: ID, Token Text: am
+Token Type: ID, Token Text: Schmetterlingshaus
+Token Type: DATE, Token Text: 23. März
+Token Type: KW_BIS, Token Text: bis
+Token Type: DATE, Token Text: 6. Oktober
+Token Type: TIME, Token Text: 11.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 16.00 Uhr
+Token Type: KW_BEI, Token Text: bei
+Token Type: KW_GUTEM_WETTER, Token Text: gutem Wetter
+Token Type: ID, Token Text: Café
+Token Type: ID, Token Text: Vergissmeinnicht
+Token Type: TIME, Token Text: 10.00
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 15.30 Uhr
+Token Type: KW_SONNTAG, Token Text: Sonntag
+Token Type: TIME, Token Text: 10.30
+Token Type: KW_BIS, Token Text: bis
+Token Type: TIME, Token Text: 16.00 Uhr
+Token Type: KW_SAMSTAG, Token Text: Samstag
+Token Type: KW_RUHETAG, Token Text: Ruhetag
 ``````
 
 ## Aufgabe 2
@@ -255,4 +268,4 @@ Token Type: NUMBER, Token Text: 2024
 
 ## Aufgabe 7
 
-Bearbeitet von Stefan Ptacek
+Bearbeitet von Stefan Ptacek und Patrick Zedler
