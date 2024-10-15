@@ -27,3 +27,5 @@ DOT : '.' ;
 COMMA : ',' ;
 MINUS : '-' ;
 COLON : ':' ;
+
+InvalidChar: . ;

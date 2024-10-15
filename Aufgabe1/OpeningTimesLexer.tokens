@@ -23,6 +23,7 @@ DOT=22
 COMMA=23
 MINUS=24
 COLON=25
+InvalidChar=26
 'bis'=2
 'täglich'=3
 'Ruhetag'=4
