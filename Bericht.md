@@ -1,5 +1,7 @@
 # Sprachkonzepte Übung WS24/25
 
+Stefan Ptacek und Patrick Zedler
+
 Bericht über die Bearbeitung der Aufgaben.
 
 ## Aufgabe 1
@@ -93,7 +95,16 @@ COLON : ':' ;
 
 In dieser Aufgabe haben wir einen Lexer für die mainau-gastronomie mithilfe von ANTLR4 erstellt, um die Öffnungszeiten von Restaurants aus einem Text in einzelne Token zu zerlegen. Zuerst haben wir eine Grammatikdatei (.g4) geschrieben, die festlegt, wie verschiedene Textbestandteile wie Schlüsselwörter, Datumsangaben, Uhrzeiten und Trennzeichen erkannt werden. Die Grammatik beschreibt die Regeln, um Bezeichner, Literale und Operatoren zu unterscheiden. Anschließend haben wir den Lexer in Java generiert und eine Anwendung erstellt, die den Lexer verwendet, um den Text zu verarbeiten. Der Lexer liest den Text ein und zerlegt ihn in Token, die dann in einer bestimmten Reihenfolge ausgegeben werden. Jeder Teil des Textes, wie Wochentage, Zeiträume und Sonderangaben, wird dabei als spezifischer Token klassifiziert. Zum Beispiel werden Datumsangaben als Zahlenliterale erkannt, während Wörter wie „täglich“ oder „Ruhetag“ als Schlüsselwörter eingeordnet werden. Die Ausgabe der Anwendung zeigt die Tokenfolge, die den Text strukturiert darstellt. Damit haben wir erreicht, dass auch ähnliche Texte automatisch analysiert werden können. Diese Methode hilft, die Struktur und Bedeutung von Zeitplänen aus Texten zu extrahieren.
 
-Probleme hatten wir dabei, sonderzeichen richtig einzulesen, da diese trotz der richtigen formatierung aller dateien nicht korrekt eingelesen wurden und somit als error dargestellt wurden. Die sonderzeichen wurden bei dem Kompelieren der Grammatik datei nämlich nur als warnung angegeben weshalb dieses Problem nicht sofort aufgefallen ist. Ebenso sind Leerzeichen in der erstellung der Grammatikdatei wichtig, damit die Token korrekt ausgelesen werden.
+Probleme hatten wir dabei, Sonderzeichen richtig einzulesen, da diese trotz der richtigen Formatierung aller Dateien nicht korrekt eingelesen wurden und somit als Error dargestellt wurden. Die Sonderzeichen wurden bei dem Kompilieren der Grammatik-Datei nämlich nur als Warnung angegeben weshalb dieses Problem nicht sofort aufgefallen ist. Ebenso sind Leerzeichen in der Erstellung der Grammatikdatei wichtig, damit die Token korrekt ausgelesen werden.
+
+In der Besprechung wurde uns folgendes als Empfehlung gesagt:
+
+- Wochentage nicht als separate Tokens, stattdessen einen Token Wochentag, den man auch in der Grammatik einfacher nutzen kann
+- Sonderbehandlung von Sonderzeichen sollte bei UTF-8 eigentlich nicht nötig sein
+- Uhrzeit und “Uhr” separate Tokens
+- NUMBER nicht rechts verwenden, stattdessen ein Fragment number nutzen und Datum in Number mit Punkt und Number ohne Punkt aufteilen
+- Punkt als separater Token ist wahrscheinlich unnötig
+- “bei gutem Wetter” kann auch als ein Token zusammengefasst werden
 
 ### Ausführung Befehle
 
@@ -267,5 +278,3 @@ Token Type: KW_RUHETAG, Token Text: Ruhetag
 ## Aufgabe 6
 
 ## Aufgabe 7
-
-Bearbeitet von Stefan Ptacek und Patrick Zedler
