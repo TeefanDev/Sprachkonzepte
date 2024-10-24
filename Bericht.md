@@ -269,6 +269,179 @@ Token Type: KW_RUHETAG, Token Text: Ruhetag
 
 ## Aufgabe 2
 
+### 2a)
+
+### Aufgabenstellung
+
+Denken Sie sich eine kleine Sprache aus. Definieren Sie deren Vokabular mit einer ANTLR4 lexer grammar und deren Grammatik mit einer ANTLR4 parser grammar. Erzeugen Sie für einige Beispieltexte mit Hilfe von org.antlr.v4.gui.TestRig den Ableitungsbaum (Parse Tree).
+
+Falls Ihnen nichts Eigenes einfällt, bauen Sie eines der beiden Beispiele aus Aufgabe 1 aus.
+
+### Lösung Code
+
+CreationLexer.g4:
+
+```
+lexer grammar CreationLexer ;
+
+KEYWORD : ’new ’ ;
+
+NAME : [A-Za -z]+ ;
+NUM : [0-9]+ ;
+
+COMMA : ’,’ ;
+
+PAR_OPEN : ’(’ ;
+PAR_CLOSE : ’)’ ;
+
+WS : [ \t\r\n]+ ;
+
+InvalidChar: . ;
+```
+
+CreationParser.g4:
+
+```
+parser grammar CreationParser ;
+options { tokenVocab = CreationLexer ; }
+
+start : expr EOF;
+
+expr : KEYWORD WS NAME PAR_OPEN params PAR_CLOSE ;
+
+params : ( param ( COMMA WS? param )*)? ;
+
+param : ( expr | NAME | NUM) ;
+```
+
+### Erklärung
+
+Wie haben wir die aufgabe gelöst.
+
+### 2b)
+
+### Aufgabenstellung
+
+Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und schreiben Sie ein Java-Programm, das den ANTLR4 Parse Tree in einen AST überführt. Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
+
+#### Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
+
+Dies und das
+
+### UML-Diagramm
+
+![UML Diagramm](Aufgabe2/UML-Diagramm.png)
+
+### Lösung Code
+
+```
+public interface Expr {
+}
+
+public interface Creation extends Expr {
+}
+
+public class Atom implements Expr {
+private final String val ;
+
+public Atom ( String val ) {
+this .val = val;
+}
+public String getVal () {
+return val;
+}
+@Override
+public String toString () {
+return this .val;
+}
+}
+
+public class Constructor implements Creation {
+private final String leftVal ;
+private final List <Expr > params ;
+private final String rightVal ;
+
+public Constructor ( String leftVal , List <Expr > params , StringrightVal ) {
+this . leftVal = leftVal ;
+this . params = params ;
+this . rightVal = rightVal ;
+}
+public String getLeftVal () {
+return leftVal ;
+}
+public List <Expr > getParams () {
+return params ;
+}
+public String getRightVal () {
+return rightVal ;
+}
+@Override
+public String toString () {
+return this . leftVal + this . params + this . rightVal ;
+}
+}
+```
+
+```
+public class CreationBuilder extends CreationParserBaseListener {
+
+private final List <Stack <Expr >> stackList = new LinkedList < >();
+private int depth = -1;
+
+public Creation build ( ParseTree tree ) {
+new ParseTreeWalker (). walk (this , tree );
+
+return ( Creation ) this . stackList .get( this . depth ).pop ();
+}
+
+@Override
+public void enterExpr ( CreationParser . ExprContext ctx) {
+this . stackList .add( new Stack < >());
+this . depth ++;
+}
+
+@Override
+public void exitExpr ( CreationParser . ExprContext ctx) {
+if (ctx. getChildCount () == 6) {
+var l = new StringBuilder ();
+for (int i = 0; i < 4; i++) {
+l. append (ctx. getChild (i). getText ());
+}
+
+var c = new Constructor (
+l. toString () ,
+new LinkedList <>( this . stackList .get( this . depth )),
+ctx. getChild (5). getText ()
+);
+this . stackList .get( this . depth ). clear ();
+
+if ( this . depth > 0)
+this .depth --;
+this . stackList .get( this . depth ). push (c);
+
+}
+}
+
+@Override
+public void enterParam ( CreationParser . ParamContext ctx) {
+if (ctx. start . getType () == CreationParser .NUM) {
+
+this . stackList .get( this . depth ). push ( new Atom (ctx .NUM (). getText ()));
+
+} else if (ctx. start . getType () == CreationParser . NAME ) {
+
+this . stackList .get( this . depth ). push ( newAtom (ctx . NAME (). getText ()));
+
+}
+}
+
+}
+```
+
+### Erklärung
+
+Dies und das
+
 ## Aufgabe 3
 
 ## Aufgabe 4
