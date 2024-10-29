@@ -277,46 +277,44 @@ Denken Sie sich eine kleine Sprache aus. Definieren Sie deren Vokabular mit eine
 
 Falls Ihnen nichts Eigenes einfällt, bauen Sie eines der beiden Beispiele aus Aufgabe 1 aus.
 
+### Idee eigene Sprache
+
+
+Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition von Öffnungszeiten für verschiedene Einrichtungen. Die Sprache soll die folgenden Elemente unterstützen:
+
+  - Bezeichnung der Einrichtung
+  - Datumsangaben
+  - Zeitangaben
+  - Wochentage
+  - spezielle Schlüsselwörter zur Definition von Öffnungs- und Schließzeiten
+  - Regeln für Ausnahmen (z. B. Ruhetage)
+
+### Befehle
+
+java -jar ../antlr-4.13.2-complete.jar OpeningHoursLexer.g4 OpeningHoursParser.g4
+javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
+java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
+
 ### Lösung Code
 
 CreationLexer.g4:
 
 ```
-lexer grammar CreationLexer ;
-
-KEYWORD : ’new ’ ;
-
-NAME : [A-Za -z]+ ;
-NUM : [0-9]+ ;
-
-COMMA : ’,’ ;
-
-PAR_OPEN : ’(’ ;
-PAR_CLOSE : ’)’ ;
-
-WS : [ \t\r\n]+ ;
-
-InvalidChar: . ;
+code
 ```
 
 CreationParser.g4:
 
 ```
-parser grammar CreationParser ;
-options { tokenVocab = CreationLexer ; }
-
-start : expr EOF;
-
-expr : KEYWORD WS NAME PAR_OPEN params PAR_CLOSE ;
-
-params : ( param ( COMMA WS? param )*)? ;
-
-param : ( expr | NAME | NUM) ;
+code
 ```
 
 ### Erklärung
 
-Wie haben wir die aufgabe gelöst.
+- openingHours: Hauptregel, die eine Struktur aus location, dateRange und openingRule-Einträgen beschreibt.
+- location: Name der Einrichtung (z. B. "Restaurant Café").
+- dateRange: Gibt den Zeitraum an, in dem die Öffnungszeiten gelten, z. B. 1. März bis 30. September.
+- openingRule: Definiert die Öffnungszeitenregeln für einen bestimmten Zeitraum oder Ruhetage.
 
 ### 2b)
 
@@ -335,112 +333,24 @@ Dies und das
 ### Lösung Code
 
 ```
-public interface Expr {
-}
-
-public interface Creation extends Expr {
-}
-
-public class Atom implements Expr {
-private final String val ;
-
-public Atom ( String val ) {
-this .val = val;
-}
-public String getVal () {
-return val;
-}
-@Override
-public String toString () {
-return this .val;
-}
-}
-
-public class Constructor implements Creation {
-private final String leftVal ;
-private final List <Expr > params ;
-private final String rightVal ;
-
-public Constructor ( String leftVal , List <Expr > params , StringrightVal ) {
-this . leftVal = leftVal ;
-this . params = params ;
-this . rightVal = rightVal ;
-}
-public String getLeftVal () {
-return leftVal ;
-}
-public List <Expr > getParams () {
-return params ;
-}
-public String getRightVal () {
-return rightVal ;
-}
-@Override
-public String toString () {
-return this . leftVal + this . params + this . rightVal ;
-}
-}
+code
 ```
 
 ```
-public class CreationBuilder extends CreationParserBaseListener {
-
-private final List <Stack <Expr >> stackList = new LinkedList < >();
-private int depth = -1;
-
-public Creation build ( ParseTree tree ) {
-new ParseTreeWalker (). walk (this , tree );
-
-return ( Creation ) this . stackList .get( this . depth ).pop ();
-}
-
-@Override
-public void enterExpr ( CreationParser . ExprContext ctx) {
-this . stackList .add( new Stack < >());
-this . depth ++;
-}
-
-@Override
-public void exitExpr ( CreationParser . ExprContext ctx) {
-if (ctx. getChildCount () == 6) {
-var l = new StringBuilder ();
-for (int i = 0; i < 4; i++) {
-l. append (ctx. getChild (i). getText ());
-}
-
-var c = new Constructor (
-l. toString () ,
-new LinkedList <>( this . stackList .get( this . depth )),
-ctx. getChild (5). getText ()
-);
-this . stackList .get( this . depth ). clear ();
-
-if ( this . depth > 0)
-this .depth --;
-this . stackList .get( this . depth ). push (c);
-
-}
-}
-
-@Override
-public void enterParam ( CreationParser . ParamContext ctx) {
-if (ctx. start . getType () == CreationParser .NUM) {
-
-this . stackList .get( this . depth ). push ( new Atom (ctx .NUM (). getText ()));
-
-} else if (ctx. start . getType () == CreationParser . NAME ) {
-
-this . stackList .get( this . depth ). push ( newAtom (ctx . NAME (). getText ()));
-
-}
-}
-
-}
+code
 ```
 
 ### Erklärung
 
-Dies und das
+Terminals und Nichtterminals, die im AST weggelassen werden
+
+- Terminals:
+    - KW_BIS, KW_UHR und KW_RUHETAG: Diese Schlüsselwörter sind strukturell wichtig, um die Syntax zu definieren, aber im AST überflüssig, da die Klassen ihre Bedeutung direkt kodieren.
+    - SEPARATOR, DOT, COLON: Diese Trennzeichen werden im AST nicht benötigt, da die syntaktischen Zusammenhänge bereits in den Strukturen DateRange, OpenHoursRule und RestDayRule abgebildet sind.
+
+- Nichtterminals:
+    - openingHours: Die oberste Regel des Parsers wird direkt in den AST überführt, indem OpeningHoursProgram als Wurzelknoten dient.
+    - location, dateRange und openingRule: Diese Nichtterminals werden ebenfalls in den AST-Strukturen direkt abgebildet, aber viele Detailknoten und rekursive Teile werden im AST vereinfacht.
 
 ## Aufgabe 3
 
