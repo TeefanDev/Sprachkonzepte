@@ -108,11 +108,11 @@ In der Besprechung wurde uns folgendes als Empfehlung gesagt:
 
 ### Ausführung Befehle
 
-java -jar ../antlr-4.13.2-complete.jar OpeningTimesLexer.g4
+- java -jar ../antlr-4.13.2-complete.jar OpeningTimesLexer.g4
 
-javac -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
+- javac -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
-java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
+- java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
 ### Ausgabe des Programms
 
@@ -291,23 +291,13 @@ Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition v
 
 ### Befehle
 
-java -jar ../antlr-4.13.2-complete.jar OpeningHoursLexer.g4 OpeningHoursParser.g4
-javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
-java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
+- java -jar ../antlr-4.13.2-complete.jar OpeningHoursLexer.g4 OpeningHoursParser.g4
+- javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
+- java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
 
-### Lösung Code
+### Parser Bild
 
-CreationLexer.g4:
-
-```
-code
-```
-
-CreationParser.g4:
-
-```
-code
-```
+![Parser](Aufgabe2/parserTree.png)
 
 ### Erklärung
 
@@ -324,21 +314,11 @@ Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und sc
 
 #### Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
 
-Dies und das
+Dies und dasIm AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
 
 ### UML-Diagramm
 
 ![UML Diagramm](Aufgabe2/UML-Diagramm.png)
-
-### Lösung Code
-
-```
-code
-```
-
-```
-code
-```
 
 ### Erklärung
 
