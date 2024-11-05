@@ -279,7 +279,6 @@ Falls Ihnen nichts Eigenes einfällt, bauen Sie eines der beiden Beispiele aus A
 
 ### Idee eigene Sprache
 
-
 Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition von Öffnungszeiten für verschiedene Einrichtungen. Die Sprache soll die folgenden Elemente unterstützen:
 
   - Bezeichnung der Einrichtung
@@ -295,7 +294,14 @@ Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition v
 - javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
 - java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
 
+### Erklärung
+
 Intelij plugin antlr zur ausführung/erstellung der parse Tree, da wir aktuell keine VM haben und es so deutlich schneller geht. 
+
+Relevant files:
+  - OeffnungszeitenText.txt
+  - OpeningHoursLexer.g4
+  - OpeningHoursParser.g4
 
 ### Parser Bild
 
@@ -335,8 +341,15 @@ Terminals und Nichtterminals, die im AST weggelassen werden
 - Nichtterminals:
     - openingHours: Die oberste Regel des Parsers wird direkt in den AST überführt, indem OpeningHoursProgram als Wurzelknoten dient.
     - location, dateRange und openingRule: Diese Nichtterminals werden ebenfalls in den AST-Strukturen direkt abgebildet, aber viele Detailknoten und rekursive Teile werden im AST vereinfacht.
+  
+Relevant Files
+  - OpeningHoursProgramm.java
+  - OpeningHoursProgramm.java
+
 
 ## Aufgabe 3
+
+
 
 ## Aufgabe 4
 
