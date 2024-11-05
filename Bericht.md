@@ -295,6 +295,8 @@ Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition v
 - javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
 - java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
 
+Intelij plugin antlr zur ausführung/erstellung der parse Tree, da wir aktuell keine VM haben und es so deutlich schneller geht. 
+
 ### Parser Bild
 
 ![Parser](Aufgabe2/parserTree.png)
@@ -306,6 +308,8 @@ Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition v
 - dateRange: Gibt den Zeitraum an, in dem die Öffnungszeiten gelten, z. B. 1. März bis 30. September.
 - openingRule: Definiert die Öffnungszeitenregeln für einen bestimmten Zeitraum oder Ruhetage.
 
+Es wird weiterhin speziell nach den characters gesucht, denn obwohl das file UTF-8 ist bekommen wir weiterhin eine fehlermeldung bei der erzeugung. Diese sagt, dass die Sonderzeichen nicht bekannt sind.
+
 ### 2b)
 
 ### Aufgabenstellung
@@ -314,7 +318,7 @@ Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und sc
 
 #### Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
 
-Dies und dasIm AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
+Im AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
 
 ### UML-Diagramm
 
