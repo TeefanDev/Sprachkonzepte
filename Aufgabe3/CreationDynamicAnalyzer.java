@@ -1,0 +1,64 @@
+public class CreationDynamicAnalyzer extends CreationParserBaseListener {
+
+    static String pre = """
+            package u3;
+
+            public class CreationDynamic {
+            public static void main ( String [] args ) {
+            System .out . println (
+            """;
+
+    static String post = """
+
+            );
+            }
+            }""";
+
+    StringBuilder sb = new StringBuilder(pre).append("\t\t\t");
+
+    public static void main(String[] args) throws IOException {
+        CreationLexer lexer = new CreationLexer(
+                args.length >= 1 ? CharStreams.fromString(args[0]) : CharStreams.fromStream(System.in));
+        CreationParser parser = new CreationParser(new CommonTokenStream(lexer));
+        ParseTree tree = parser.start();
+
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            System.err.printf("%d error (s) detected %n", parser.getNumberOfSyntaxErrors());
+            System.exit(1);
+        }
+
+        new ParseTreeWalker().walk(new CreationDynamicAnalyzer(), tree);
+
+    }
+
+    @Override
+    public void enterExpr(CreationParser.ExprContext ctx) {
+        if (ctx.getChildCount() == 6) {
+
+            if (!ctx.getChild(2).getText().equals(SillyClass.class.getSimpleName())) {
+
+                System.out.println(ctx.getChild(2).getText() + " == " + SillyClass.class.getSimpleName());
+                throw new RuntimeException(" Wrong class name !");
+            }
+            for (int i = 0; i < ctx.getChildCount(); i++) {
+                sb.append(ctx.getChild(i).getText());
+            }
+            sb.append(post);
+
+            if (ctx.params().param().size() != 1) {
+                throw new RuntimeException(" Wrong number of parameters !");
+            }
+
+            try {
+                FileWriter myWriter = new FileWriter("./ src/u3/ CreationDynamic . java ");
+                myWriter.write(sb.toString());
+
+                myWriter.close();
+                System.out.println(" Successfully wrote to the file .");
+            } catch (IOException e) {
+                System.out.println("An error occurred .");
+                e.printStackTrace();
+            }
+        }
+    }
+}

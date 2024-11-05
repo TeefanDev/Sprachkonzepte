@@ -348,7 +348,181 @@ Relevant Files
 
 ## Aufgabe 3
 
+### a)
 
+Sie haben in Aufgabe 2 eine kleine Sprache mit konkreter und abstrakter Syntax definiert.
+Lässt sich eine statische Semantik für Ihre abstrakte Syntax angeben? Erlaubt Ihre konkrete
+Syntax Formulierungen, die die statische Semantik verletzen? Ergänzen Sie gegebenenfalls
+eine statische Semantikprüfung für Ihre Sprache.
+Falls Ihre eigene Sprache hinsichtlich statischer Sematik nichts hergibt, laden Sie die ANTLR4
+Java Grammatik herunter und schreiben Sie mit Hilfe der generierten Listener-Klasse eine
+statische Semantikprüfung, die sicherstellt, dass ganzzahlige Literale ohne L im Zahlbereich
+von int und mit L im Zahlbereich von long liegen.
+
+### a - Lösung
+
+```
+public class CreationStatic extends CreationParserBaseListener {
+
+    public static void main(String[] args) throws IOException {
+        CreationLexer lexer = new CreationLexer(
+                args.length >= 1 ? CharStreams.fromString(args[0]) : CharStreams.fromStream(System.in));
+        CreationParser parser = new CreationParser(new CommonTokenStream(lexer));
+        ParseTree tree = parser.param();
+
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            System.err.printf("%d error (s) detected %n", parser.getNumberOfSyntaxErrors());
+            System.exit(1);
+        }
+
+        new ParseTreeWalker().walk(new CreationStatic(), tree);
+    }
+
+    @Override
+    public void enterParam(CreationParser.ParamContext ctx) {
+
+        if (ctx.start.getType() == CreationParser.NUM) {
+            System.out.println(" Found a Number : " + ctx.getText());
+
+            var literal = ctx.NUM().getText();
+
+            if (literal.endsWith("L") || literal.endsWith("l")) {
+                System.out.print(" Expected Long : ");
+
+                long value;
+                try {
+                    value = Long.parseLong(literal.substring(0, literal.length() - 1));
+                } catch (NumberFormatException e) {
+                    System.out.println(" Bigger than Long !");
+                    throw new RuntimeException(e);
+                }
+                if (value > Integer.MAX_VALUE) {
+                    System.out.println(" Found Long !");
+                } else {
+                    System.out.println(" Wrong range !");
+                }
+
+            } else {
+                System.out.print(" Expected Integer : ");
+
+                try {
+                    Integer.parseInt(literal);
+                    System.out.println(" Found Integer !");
+                } catch (NumberFormatException e) {
+                    System.out.println(" Wrong range !");
+                }
+            }
+            System.out.println();
+        }
+    }
+}
+```
+
+### Erklärung
+
+Umsetzung der statischen Semantikprüfung mit der ANTLR4 Java Grammatik.
+Beim Parsen wird jeder Paramter mit der enterParam Methode des Listeners überprüft, ob
+dieser ein im Falle einer Zahl, ein Integer oder Long ist. Dies geschiet indem aus dem Kontext
+der Regeltyp hergeleitet wird. Sollte der Typ NUM sein, wird überprüft ob der Literalwert
+mit einem L oder l für Long endet. Falls dies der Fall ist, wird der Wert in einen Long geparst
+und überprüft ob dieser größer als der Maximalwert von Integer ist. Somit ist sichergestellt,
+dass der Wert im Bereich von Long liegt. Falls dies nicht der Fall ist, wird der Wert in einen
+Integer geparst und somit indirekt überprüft ob dieser im Bereich von Integer liegt. Das
+Parsen ist jeweils in einem Try-Catch Block, da bei einem zu großen Wert eine NumberFormatException
+geworfen wird. Dadurch ist gegeben, dass die Wertebereiche stimmen.
+
+![Output](Aufgabe3/3a.png)
+
+### b)
+
+Programmieren Sie für Ihre eigene Sprache aus Aufgabe 2 mindestens eine dynamische Semantik.
+
+### b - Lösung
+
+```
+public class SillyClass {
+    int x = 0;
+
+    public SillyClass ( int x) {
+        this .x = x;
+    }
+}
+```
+
+In der Aufgabe wird für die vorgegebene SillyClass eine dynamische Semantikprüfung implementiert.
+
+```
+public class CreationDynamicAnalyzer extends CreationParserBaseListener {
+
+    static String pre = """
+            package u3;
+
+            public class CreationDynamic {
+            public static void main ( String [] args ) {
+            System .out . println (
+            """;
+
+    static String post = """
+
+            );
+            }
+            }""";
+
+    StringBuilder sb = new StringBuilder(pre).append("\t\t\t");
+
+    public static void main(String[] args) throws IOException {
+        CreationLexer lexer = new CreationLexer(
+                args.length >= 1 ? CharStreams.fromString(args[0]) : CharStreams.fromStream(System.in));
+        CreationParser parser = new CreationParser(new CommonTokenStream(lexer));
+        ParseTree tree = parser.start();
+
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            System.err.printf("%d error (s) detected %n", parser.getNumberOfSyntaxErrors());
+            System.exit(1);
+        }
+
+        new ParseTreeWalker().walk(new CreationDynamicAnalyzer(), tree);
+
+    }
+
+    @Override
+    public void enterExpr(CreationParser.ExprContext ctx) {
+        if (ctx.getChildCount() == 6) {
+
+            if (!ctx.getChild(2).getText().equals(SillyClass.class.getSimpleName())) {
+
+                System.out.println(ctx.getChild(2).getText() + " == " + SillyClass.class.getSimpleName());
+                throw new RuntimeException(" Wrong class name !");
+            }
+            for (int i = 0; i < ctx.getChildCount(); i++) {
+                sb.append(ctx.getChild(i).getText());
+            }
+            sb.append(post);
+
+            if (ctx.params().param().size() != 1) {
+                throw new RuntimeException(" Wrong number of parameters !");
+            }
+
+            try {
+                FileWriter myWriter = new FileWriter("./ src/u3/ CreationDynamic . java ");
+                myWriter.write(sb.toString());
+
+                myWriter.close();
+                System.out.println(" Successfully wrote to the file .");
+            } catch (IOException e) {
+                System.out.println("An error occurred .");
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+### Erklärung
+
+
+
+![Output](Aufgabe3/3b.png)
 
 ## Aufgabe 4
 
