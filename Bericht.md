@@ -362,74 +362,65 @@ von int und mit L im Zahlbereich von long liegen.
 ### a - Lösung
 
 ```
-public class CreationStatic extends CreationParserBaseListener {
+public class OpeningHoursStaticSemantics extends OpeningHoursBaseListener {
+    
+    // Beispiel-Variablen zur temporären Speicherung
+    private DayOfWeek startDay;
+    private DayOfWeek endDay;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    
+    // Überprüft, ob die Startzeit vor der Endzeit liegt
+    @Override
+    public void enterOpeningPeriod(OpeningHoursParser.OpeningPeriodContext ctx) {
+        startDay = parseDay(ctx.startDay().getText());
+        endDay = parseDay(ctx.endDay().getText());
+        startTime = parseTime(ctx.startTime().getText());
+        endTime = parseTime(ctx.endTime().getText());
 
-    public static void main(String[] args) throws IOException {
-        CreationLexer lexer = new CreationLexer(
-                args.length >= 1 ? CharStreams.fromString(args[0]) : CharStreams.fromStream(System.in));
-        CreationParser parser = new CreationParser(new CommonTokenStream(lexer));
-        ParseTree tree = parser.param();
-
-        if (parser.getNumberOfSyntaxErrors() > 0) {
-            System.err.printf("%d error (s) detected %n", parser.getNumberOfSyntaxErrors());
-            System.exit(1);
+        if (startTime.isAfter(endTime)) {
+            System.err.println("Fehler: Startzeit muss vor der Endzeit liegen: " 
+                                + startTime + " - " + endTime);
         }
 
-        new ParseTreeWalker().walk(new CreationStatic(), tree);
+        if (startDay.compareTo(endDay) > 0) {
+            System.err.println("Fehler: Starttag muss vor dem Endtag liegen: " 
+                                + startDay + " - " + endDay);
+        }
+    }
+    
+    // Hilfsmethoden zur Konvertierung von Text in DayOfWeek und LocalTime
+    private DayOfWeek parseDay(String dayText) {
+        switch(dayText.toLowerCase()) {
+            case "montag": return DayOfWeek.MONDAY;
+            case "dienstag": return DayOfWeek.TUESDAY;
+            case "mittwoch": return DayOfWeek.WEDNESDAY;
+            case "donnerstag": return DayOfWeek.THURSDAY;
+            case "freitag": return DayOfWeek.FRIDAY;
+            case "samstag": return DayOfWeek.SATURDAY;
+            case "sonntag": return DayOfWeek.SUNDAY;
+            default: throw new IllegalArgumentException("Ungültiger Tag: " + dayText);
+        }
     }
 
-    @Override
-    public void enterParam(CreationParser.ParamContext ctx) {
+    private LocalTime parseTime(String timeText) {
+        return LocalTime.parse(timeText); // Erwartet Format "HH:mm"
+    }
 
-        if (ctx.start.getType() == CreationParser.NUM) {
-            System.out.println(" Found a Number : " + ctx.getText());
-
-            var literal = ctx.NUM().getText();
-
-            if (literal.endsWith("L") || literal.endsWith("l")) {
-                System.out.print(" Expected Long : ");
-
-                long value;
-                try {
-                    value = Long.parseLong(literal.substring(0, literal.length() - 1));
-                } catch (NumberFormatException e) {
-                    System.out.println(" Bigger than Long !");
-                    throw new RuntimeException(e);
-                }
-                if (value > Integer.MAX_VALUE) {
-                    System.out.println(" Found Long !");
-                } else {
-                    System.out.println(" Wrong range !");
-                }
-
-            } else {
-                System.out.print(" Expected Integer : ");
-
-                try {
-                    Integer.parseInt(literal);
-                    System.out.println(" Found Integer !");
-                } catch (NumberFormatException e) {
-                    System.out.println(" Wrong range !");
-                }
-            }
-            System.out.println();
-        }
+    public static void main(String[] args) throws Exception {
+        // Beispieltext einlesen und Parsen starten
+        OpeningHoursLexer lexer = new OpeningHoursLexer(new ANTLRFileStream("example.txt"));
+        OpeningHoursParser parser = new OpeningHoursParser(new CommonTokenStream(lexer));
+        
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(new OpeningHoursStaticSemantics(), parser.openingHours());
     }
 }
 ```
 
 ### Erklärung
 
-Umsetzung der statischen Semantikprüfung mit der ANTLR4 Java Grammatik.
-Beim Parsen wird jeder Paramter mit der enterParam Methode des Listeners überprüft, ob
-dieser ein im Falle einer Zahl, ein Integer oder Long ist. Dies geschiet indem aus dem Kontext
-der Regeltyp hergeleitet wird. Sollte der Typ NUM sein, wird überprüft ob der Literalwert
-mit einem L oder l für Long endet. Falls dies der Fall ist, wird der Wert in einen Long geparst
-und überprüft ob dieser größer als der Maximalwert von Integer ist. Somit ist sichergestellt,
-dass der Wert im Bereich von Long liegt. Falls dies nicht der Fall ist, wird der Wert in einen
-Integer geparst und somit indirekt überprüft ob dieser im Bereich von Integer liegt. Das
-Parsen ist jeweils in einem Try-Catch Block, da bei einem zu großen Wert eine NumberFormatException
-geworfen wird. Dadurch ist gegeben, dass die Wertebereiche stimmen.
+Wir haben eine statische Semantikprüfung für unsere Öffnungszeiten-Sprache implementiert, die sicherstellt, dass Zeiträume logisch sinnvoll sind. Die Prüfung kontrolliert, ob der Starttag vor dem Endtag liegt und die Startzeit vor der Endzeit, um inkonsistente Angaben zu vermeiden. Fehlerhafte Formulierungen werden so frühzeitig erkannt und gemeldet.
 
 ![Output](Aufgabe3/3a.png)
 
@@ -440,79 +431,46 @@ Programmieren Sie für Ihre eigene Sprache aus Aufgabe 2 mindestens eine dynamis
 ### b - Lösung
 
 ```
-public class SillyClass {
-    int x = 0;
+public class OpeningHoursInterpreter {
+    
+    // Klasse zur Repräsentation der Öffnungszeit eines Betriebs
+    static class OpeningHours {
+        DayOfWeek startDay;
+        DayOfWeek endDay;
+        LocalTime startTime;
+        LocalTime endTime;
 
-    public SillyClass ( int x) {
-        this .x = x;
-    }
-}
-```
-
-In der Aufgabe wird für die vorgegebene SillyClass eine dynamische Semantikprüfung implementiert.
-
-```
-public class CreationDynamicAnalyzer extends CreationParserBaseListener {
-
-    static String pre = """
-            package u3;
-
-            public class CreationDynamic {
-            public static void main ( String [] args ) {
-            System .out . println (
-            """;
-
-    static String post = """
-
-            );
-            }
-            }""";
-
-    StringBuilder sb = new StringBuilder(pre).append("\t\t\t");
-
-    public static void main(String[] args) throws IOException {
-        CreationLexer lexer = new CreationLexer(
-                args.length >= 1 ? CharStreams.fromString(args[0]) : CharStreams.fromStream(System.in));
-        CreationParser parser = new CreationParser(new CommonTokenStream(lexer));
-        ParseTree tree = parser.start();
-
-        if (parser.getNumberOfSyntaxErrors() > 0) {
-            System.err.printf("%d error (s) detected %n", parser.getNumberOfSyntaxErrors());
-            System.exit(1);
+        public OpeningHours(DayOfWeek startDay, DayOfWeek endDay, LocalTime startTime, LocalTime endTime) {
+            this.startDay = startDay;
+            this.endDay = endDay;
+            this.startTime = startTime;
+            this.endTime = endTime;
         }
 
-        new ParseTreeWalker().walk(new CreationDynamicAnalyzer(), tree);
+        // Methode, um zu prüfen, ob ein bestimmter Zeitpunkt in den Öffnungszeiten liegt
+        public boolean isOpen(LocalDate date, LocalTime time) {
+            DayOfWeek day = date.getDayOfWeek();
+            
+            boolean isWithinDays = (day.compareTo(startDay) >= 0 && day.compareTo(endDay) <= 0);
+            boolean isWithinTime = (time.compareTo(startTime) >= 0 && time.compareTo(endTime) <= 0);
 
+            return isWithinDays && isWithinTime;
+        }
     }
 
-    @Override
-    public void enterExpr(CreationParser.ExprContext ctx) {
-        if (ctx.getChildCount() == 6) {
+    public static void main(String[] args) {
+        // Beispiel-Öffnungszeiten: Montag bis Freitag, 9:00 bis 17:00 Uhr
+        OpeningHours hours = new OpeningHours(DayOfWeek.MONDAY, DayOfWeek.FRIDAY, 
+                                              LocalTime.of(9, 0), LocalTime.of(17, 0));
 
-            if (!ctx.getChild(2).getText().equals(SillyClass.class.getSimpleName())) {
+        // Teste die dynamische Semantik mit einem Beispielzeitpunkt
+        LocalDate dateToCheck = LocalDate.of(2024, 10, 17); // Ein Donnerstag
+        LocalTime timeToCheck = LocalTime.of(10, 30);       // 10:30 Uhr
 
-                System.out.println(ctx.getChild(2).getText() + " == " + SillyClass.class.getSimpleName());
-                throw new RuntimeException(" Wrong class name !");
-            }
-            for (int i = 0; i < ctx.getChildCount(); i++) {
-                sb.append(ctx.getChild(i).getText());
-            }
-            sb.append(post);
-
-            if (ctx.params().param().size() != 1) {
-                throw new RuntimeException(" Wrong number of parameters !");
-            }
-
-            try {
-                FileWriter myWriter = new FileWriter("./ src/u3/ CreationDynamic . java ");
-                myWriter.write(sb.toString());
-
-                myWriter.close();
-                System.out.println(" Successfully wrote to the file .");
-            } catch (IOException e) {
-                System.out.println("An error occurred .");
-                e.printStackTrace();
-            }
+        if (hours.isOpen(dateToCheck, timeToCheck)) {
+            System.out.println("Das Geschäft ist zu diesem Zeitpunkt geöffnet.");
+        } else {
+            System.out.println("Das Geschäft ist zu diesem Zeitpunkt geschlossen.");
         }
     }
 }
@@ -520,7 +478,7 @@ public class CreationDynamicAnalyzer extends CreationParserBaseListener {
 
 ### Erklärung
 
-
+In dem Beispiel wurde eine dynamische Semantik für eine Sprache zur Beschreibung von Öffnungszeiten implementiert. Unser Ziel war, zu überprüfen, ob ein Geschäft zu einem bestimmten Zeitpunkt geöffnet ist.
 
 ![Output](Aufgabe3/3b.png)
 
