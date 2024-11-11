@@ -108,11 +108,11 @@ In der Besprechung wurde uns folgendes als Empfehlung gesagt:
 
 ### Ausführung Befehle
 
-java -jar ../antlr-4.13.2-complete.jar OpeningTimesLexer.g4
+- java -jar ../antlr-4.13.2-complete.jar OpeningTimesLexer.g4
 
-javac -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
+- javac -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
-java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
+- java -cp ".;..\antlr-4.13.2-complete.jar;" .\TokenPrinter.java .\OpeningTimesLexer.java
 
 ### Ausgabe des Programms
 
@@ -269,7 +269,87 @@ Token Type: KW_RUHETAG, Token Text: Ruhetag
 
 ## Aufgabe 2
 
+### 2a)
+
+### Aufgabenstellung
+
+Denken Sie sich eine kleine Sprache aus. Definieren Sie deren Vokabular mit einer ANTLR4 lexer grammar und deren Grammatik mit einer ANTLR4 parser grammar. Erzeugen Sie für einige Beispieltexte mit Hilfe von org.antlr.v4.gui.TestRig den Ableitungsbaum (Parse Tree).
+
+Falls Ihnen nichts Eigenes einfällt, bauen Sie eines der beiden Beispiele aus Aufgabe 1 aus.
+
+### Idee eigene Sprache
+
+Wir haben uns die Sprache Oeffnungszeiten ausgedacht. Sie dient der Definition von Öffnungszeiten für verschiedene Einrichtungen. Die Sprache soll die folgenden Elemente unterstützen:
+
+  - Bezeichnung der Einrichtung
+  - Datumsangaben
+  - Zeitangaben
+  - Wochentage
+  - spezielle Schlüsselwörter zur Definition von Öffnungs- und Schließzeiten
+  - Regeln für Ausnahmen (z. B. Ruhetage)
+
+### Befehle
+
+- java -jar ../antlr-4.13.2-complete.jar OpeningHoursLexer.g4 OpeningHoursParser.g4
+- javac -cp ".;..\antlr-4.13.2-complete.jar" OpeningHoursLexer.java OpeningHoursParser.java OpeningHoursParser*.java
+- java -cp ".;..\antlr-4.13.2-complete.jar" org.antlr.v4.gui.TestRig OpeningHoursParser openingHours -gui example.txt
+
+### Erklärung
+
+Intelij plugin antlr zur ausführung/erstellung der parse Tree, da wir aktuell keine VM haben und es so deutlich schneller geht. 
+
+Relevant files:
+  - OeffnungszeitenText.txt
+  - OpeningHoursLexer.g4
+  - OpeningHoursParser.g4
+
+### Parser Bild
+
+![Parser](Aufgabe2/parserTree.png)
+
+### Erklärung
+
+- openingHours: Hauptregel, die eine Struktur aus location, dateRange und openingRule-Einträgen beschreibt.
+- location: Name der Einrichtung (z. B. "Restaurant Café").
+- dateRange: Gibt den Zeitraum an, in dem die Öffnungszeiten gelten, z. B. 1. März bis 30. September.
+- openingRule: Definiert die Öffnungszeitenregeln für einen bestimmten Zeitraum oder Ruhetage.
+
+Es wird weiterhin speziell nach den characters gesucht, denn obwohl das file UTF-8 ist bekommen wir weiterhin eine fehlermeldung bei der erzeugung. Diese sagt, dass die Sonderzeichen nicht bekannt sind.
+
+### 2b)
+
+### Aufgabenstellung
+
+Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und schreiben Sie ein Java-Programm, das den ANTLR4 Parse Tree in einen AST überführt. Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
+
+#### Welche Terminale und Nichtterminale aus dem Ableitungsbaum werden in Ihrem AST weggelassen?
+
+Im AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
+
+### UML-Diagramm
+
+![UML Diagramm](Aufgabe2/UML-Diagramm.png)
+
+### Erklärung
+
+Terminals und Nichtterminals, die im AST weggelassen werden
+
+- Terminals:
+    - KW_BIS, KW_UHR und KW_RUHETAG: Diese Schlüsselwörter sind strukturell wichtig, um die Syntax zu definieren, aber im AST überflüssig, da die Klassen ihre Bedeutung direkt kodieren.
+    - SEPARATOR, DOT, COLON: Diese Trennzeichen werden im AST nicht benötigt, da die syntaktischen Zusammenhänge bereits in den Strukturen DateRange, OpenHoursRule und RestDayRule abgebildet sind.
+
+- Nichtterminals:
+    - openingHours: Die oberste Regel des Parsers wird direkt in den AST überführt, indem OpeningHoursProgram als Wurzelknoten dient.
+    - location, dateRange und openingRule: Diese Nichtterminals werden ebenfalls in den AST-Strukturen direkt abgebildet, aber viele Detailknoten und rekursive Teile werden im AST vereinfacht.
+  
+Relevant Files
+  - OpeningHoursProgramm.java
+  - OpeningHoursProgramm.java
+
+
 ## Aufgabe 3
+
+
 
 ## Aufgabe 4
 
