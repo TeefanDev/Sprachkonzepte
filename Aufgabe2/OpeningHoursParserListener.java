@@ -7,6 +7,16 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface OpeningHoursParserListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link OpeningHoursParser#openingHoursFile}.
+	 * @param ctx the parse tree
+	 */
+	void enterOpeningHoursFile(OpeningHoursParser.OpeningHoursFileContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link OpeningHoursParser#openingHoursFile}.
+	 * @param ctx the parse tree
+	 */
+	void exitOpeningHoursFile(OpeningHoursParser.OpeningHoursFileContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link OpeningHoursParser#openingHours}.
 	 * @param ctx the parse tree
 	 */

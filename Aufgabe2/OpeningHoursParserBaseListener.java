@@ -16,6 +16,18 @@ public class OpeningHoursParserBaseListener implements OpeningHoursParserListene
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterOpeningHoursFile(OpeningHoursParser.OpeningHoursFileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOpeningHoursFile(OpeningHoursParser.OpeningHoursFileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterOpeningHours(OpeningHoursParser.OpeningHoursContext ctx) { }
 	/**
 	 * {@inheritDoc}
