@@ -325,10 +325,6 @@ Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und sc
 
 Im AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
 
-### UML-Diagramm
-
-![UML Diagramm](Aufgabe2/UML-Diagramm.png)
-
 ### Erklärung
 
 Terminals und Nichtterminals, die im AST weggelassen werden
