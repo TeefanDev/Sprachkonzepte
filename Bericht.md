@@ -305,16 +305,15 @@ Relevant files:
 
 ### Parser Bild
 
-![Parser](Aufgabe2/parserTree.png)
+![Parser](Aufgabe2/parserTree.jpg)
 
 ### Erklärung
 
+- openingHoursFile: Zusatzregel, die mehrere aufeinander folgende openingHours beschreibt.
 - openingHours: Hauptregel, die eine Struktur aus location, dateRange und openingRule-Einträgen beschreibt.
-- location: Name der Einrichtung (z. B. "Restaurant Café").
-- dateRange: Gibt den Zeitraum an, in dem die Öffnungszeiten gelten, z. B. 1. März bis 30. September.
+- location: Name der Einrichtung (z. B. "Restaurant").
+- dateRange: Gibt den Zeitraum an, in dem die Öffnungszeiten gelten, z. B. 1.3. bis 30.9.
 - openingRule: Definiert die Öffnungszeitenregeln für einen bestimmten Zeitraum oder Ruhetage.
-
-Es wird weiterhin speziell nach den characters gesucht, denn obwohl das file UTF-8 ist bekommen wir weiterhin eine fehlermeldung bei der erzeugung. Diese sagt, dass die Sonderzeichen nicht bekannt sind.
 
 ### 2b)
 
