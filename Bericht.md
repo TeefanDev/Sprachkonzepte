@@ -352,6 +352,119 @@ Relevant Files
 
 ## Aufgabe 4
 
+### 4a)
+
+### Aufgabenstellung
+
+Vervollständigen Sie das folgende Java-Programm, indem Sie die aufgerufenen Klassenmethoden ergänzen. Implementieren Sie die Klassenmethoden mit Schleifen und Verzweigungen. Was an dem vervollständigten Java-Programm ist alles eindeutig imperativer bzw. prozeduraler Stil?
+Hinweise:
+Leere Zeilen sind Zeilen, die nichts oder nur Whitespace enthalten.
+Kurze Zeilen sind Zeilen, die weniger als MIN_LENGTH Zeichen enthalten.
+
+### Lösung
+
+```java
+public final class Procedural {
+  private Procedural() { }
+
+  private static final int MIN_LENGTH = 20;
+
+  public static void main(String[] args) throws IOException {
+    var input = Paths.get(args[0]);
+    var lines = new LinkedList<String>();
+
+    long start = System.nanoTime();
+    // Sequenzielle Verarbeitung der Zeilen nacheinander
+    readLines(Files.newBufferedReader(input), lines);
+    removeEmptyLines(lines);
+    removeShortLines(lines);
+    int n = totalLineLengths(lines);
+
+    long stop = System.nanoTime();
+
+    System.out.printf("result = %d (%d microsec)%n", n, (stop - start) / 1000);
+  }
+
+  private static void readLines(BufferedReader reader, LinkedList<String> lines) throws IOException {
+    String line;
+    while ((line = reader.readLine()) != null) {
+      // Eindeutig prozedurale Verarbeitung der Zeilen
+      lines.add(line);
+    }
+  }
+
+  private static void removeEmptyLines(LinkedList<String> lines) {
+    for (int i = lines.size() - 1; i >= 0; i--) {
+      if (lines.get(i).trim().isEmpty()) {
+        // Eindeutig prozedurales Löschen der Zeilen
+        lines.remove(i);
+      }
+    }
+  }
+
+  private static void removeShortLines(LinkedList<String> lines) {
+    for (int i = lines.size() - 1; i >= 0; i--) {
+      if (lines.get(i).length() < MIN_LENGTH) {
+        // Eindeutig prozedurales Löschen der Zeilen
+        lines.remove(i);
+      }
+    }
+  }
+
+  private static int totalLineLengths(LinkedList<String> lines) {
+    int n = 0;
+    for (String line : lines) {
+      n += line.length();
+    }
+    return n;
+  }
+}
+```
+
+### 4b)
+
+### Aufgabenstellung
+
+Stellen Sie das Programm aus 4a mithilfe von java.util.streams und Lambdas auf einen funktionalen Stil um. Ihr Programm darf nach der Umstellung keine Schleifen, Verzweigungen und Seiteneffekte mehr enthalten.
+
+### Lösung
+
+```java
+public final class Functional {
+  private Functional() { }
+
+  private static final int MIN_LENGTH = 20;
+
+  public static void main(String[] args) throws IOException {
+    var input = Paths.get(args[0]);
+
+    long start = System.nanoTime();
+
+    int n = Files.lines(input)
+        .map(String::trim)
+        .filter(line -> !line.isEmpty())
+        .filter(line -> line.length() >= MIN_LENGTH)
+        .mapToInt(String::length)
+        .sum();
+
+    long stop = System.nanoTime();
+
+    System.out.printf("result = %d (%d microsec)%n", n, (stop - start) / 1000);
+  }
+}
+```
+
+### 4c)
+
+### Aufgabenstellung
+
+Vergleichen Sie die Laufzeiten der Programme aus 4a und 4b.
+
+### Lösung
+
+Bei der kompletten englischen Bibel mit einer totalen Zeilenlänge von ca. 4 Mio. Zeichen benötigt das prozedurale Programm aus 4 a) etwa 10 Sekunden, während das funktionale Programm aus 4 b) nur etwa 45 Millisekunden benötigt.
+Dies bedeutet eine Beschleunigung um den Faktor 222.
+
 ## Aufgabe 5
 
 ## Aufgabe 6
