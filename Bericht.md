@@ -460,6 +460,13 @@ public final class Functional {
 
 Vergleichen Sie die Laufzeiten der Programme aus 4a und 4b.
 
+### Ausführung Befehle
+
+- javac Procedural.java
+- javac Functional.java
+- java Procedural input.txt
+- java Functional input.txt
+
 ### Lösung
 
 Bei der kompletten englischen Bibel mit einer totalen Zeilenlänge von ca. 4 Mio. Zeichen benötigt das prozedurale Programm aus 4 a) etwa 10 Sekunden, während das funktionale Programm aus 4 b) nur etwa 45 Millisekunden benötigt.
