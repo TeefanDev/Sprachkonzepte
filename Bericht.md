@@ -588,6 +588,7 @@ public final class Procedural {
 
     long start = System.nanoTime();
     // Sequenzielle Verarbeitung der Zeilen nacheinander
+    // Seiteneffekt auf lines
     readLines(Files.newBufferedReader(input), lines);
     removeEmptyLines(lines);
     removeShortLines(lines);
@@ -607,19 +608,21 @@ public final class Procedural {
   }
 
   private static void removeEmptyLines(LinkedList<String> lines) {
-    for (int i = lines.size() - 1; i >= 0; i--) {
-      if (lines.get(i).trim().isEmpty()) {
+    for (Iterator<String> it = lines.iterator(); it.hasNext(); ) {
+      String line = it.next();
+      if (line.trim().isEmpty()) {
         // Eindeutig prozedurales Löschen der Zeilen
-        lines.remove(i);
+        it.remove();
       }
     }
   }
 
   private static void removeShortLines(LinkedList<String> lines) {
-    for (int i = lines.size() - 1; i >= 0; i--) {
-      if (lines.get(i).length() < MIN_LENGTH) {
+    for (Iterator<String> it = lines.iterator(); it.hasNext(); ) {
+      String line = it.next();
+      if (line.length() < MIN_LENGTH) {
         // Eindeutig prozedurales Löschen der Zeilen
-        lines.remove(i);
+        it.remove();
       }
     }
   }
@@ -653,11 +656,11 @@ public final class Functional {
 
     long start = System.nanoTime();
 
+    // Keine Seiteneffekte auf eine Liste
     int n = Files.lines(input)
-        .map(String::trim)
-        .filter(line -> !line.isEmpty())
-        .filter(line -> line.length() >= MIN_LENGTH)
+        .filter(line -> !line.trim().isEmpty())
         .mapToInt(String::length)
+        .filter(length -> length >= MIN_LENGTH)
         .sum();
 
     long stop = System.nanoTime();
@@ -682,8 +685,8 @@ Vergleichen Sie die Laufzeiten der Programme aus 4a und 4b.
 
 ### Lösung
 
-Bei der kompletten englischen Bibel mit einer totalen Zeilenlänge von ca. 4 Mio. Zeichen benötigt das prozedurale Programm aus 4 a) etwa 10 Sekunden, während das funktionale Programm aus 4 b) nur etwa 45 Millisekunden benötigt.
-Dies bedeutet eine Beschleunigung um den Faktor 222.
+Bei der kompletten englischen Bibel mit einer totalen Zeilenlänge von ca. 4 Mio. Zeichen benötigt das prozedurale Programm aus 4 a) etwa 60 Millisekunden, während das funktionale Programm aus 4 b) etwa 67 Millisekunden benötigt.
+Der kaum vorhandene Unterschied ist wahrscheinlich auf das Betriebssystem (MacOS) zurückzuführen, da die Laufzeiten sehr ähnlich sind. Grundsätzlich sollte aber der prozedurale Stil langsamer sein, da er mehr Overhead mit Interatoren hat.
 
 ## Aufgabe 5
 

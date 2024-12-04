@@ -13,10 +13,9 @@ public final class Functional {
     long start = System.nanoTime();
 
     int n = Files.lines(input)
-        .map(String::trim)
-        .filter(line -> !line.isEmpty())
-        .filter(line -> line.length() >= MIN_LENGTH)
+        .filter(line -> !line.trim().isEmpty())
         .mapToInt(String::length)
+        .filter(length -> length >= MIN_LENGTH)
         .sum();
 
     long stop = System.nanoTime();
