@@ -325,10 +325,6 @@ Definieren Sie mit Java-Klassen die abstrakte Syntax Ihrer Sprache aus a) und sc
 
 Im AST bleiben im Wesentlichen die Knoten übrig, die die Bedeutung und Struktur der Öffnungszeiten repräsentieren (z. B. Öffnungszeitraum, Wochentage, Uhrzeiten), während Zwischenräume, Trennzeichen und andere strukturelle Terminals/Nichtterminals weggelassen werden.
 
-### UML-Diagramm
-
-![UML Diagramm](Aufgabe2/UML-Diagramm.png)
-
 ### Erklärung
 
 Terminals und Nichtterminals, die im AST weggelassen werden
@@ -348,7 +344,224 @@ Relevant Files
 
 ## Aufgabe 3
 
+### a)
 
+Sie haben in Aufgabe 2 eine kleine Sprache mit konkreter und abstrakter Syntax definiert.
+Lässt sich eine statische Semantik für Ihre abstrakte Syntax angeben? Erlaubt Ihre konkrete
+Syntax Formulierungen, die die statische Semantik verletzen? Ergänzen Sie gegebenenfalls
+eine statische Semantikprüfung für Ihre Sprache.
+Falls Ihre eigene Sprache hinsichtlich statischer Sematik nichts hergibt, laden Sie die ANTLR4
+Java Grammatik herunter und schreiben Sie mit Hilfe der generierten Listener-Klasse eine
+statische Semantikprüfung, die sicherstellt, dass ganzzahlige Literale ohne L im Zahlbereich
+von int und mit L im Zahlbereich von long liegen.
+
+### a - Lösung
+
+Test Text
+```
+Bäckerei Täglich Brot
+11.3. bis 30.2.
+Montag bis Freitag 09:00 bis 05:00 Uhr
+Samstag 10:00 bis 14:00 Uhr
+Sonntag Ruhetag
+
+Eisdiele am Hafen
+1.7. bis 30.8.
+Montag bis Samstag 20:00 bis 19:00 Uhr
+Sonntag 11:00 bis 17:00 Uhr
+```
+
+Statischer Semantic Checker
+```
+import java.util.*;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
+    private final List<String> errors = new ArrayList<>();
+    private static final String DATE_FORMAT = "dd.MM";
+
+    @Override
+    public void exitDateRange(OpeningHoursParser.DateRangeContext ctx) {
+        String startDate = ctx.DATE(0).getText();
+        String endDate = ctx.DATE(1).getText();
+
+        if (!isValidDate(startDate) || !isValidDate(endDate)) {
+            errors.add("Ungueltiges Datum im Bereich: " + startDate + " bis " + endDate);
+        }
+    }
+
+    @Override
+    public void exitOpeningRule(OpeningHoursParser.OpeningRuleContext ctx) {
+        if (ctx.TIME().size() == 2) {
+            String startTime = ctx.TIME(0).getText();
+            String endTime = ctx.TIME(1).getText();
+
+            if (!isValidTimeRange(startTime, endTime)) {
+                errors.add("Ungueltiger Zeitraum: " + startTime + " bis " + endTime + " Uhr");
+            }
+        }
+    }
+
+    private boolean isValidDate(String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        sdf.setLenient(false);
+        try {
+            sdf.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
+    private boolean isValidTimeRange(String startTime, String endTime) {
+        return startTime.compareTo(endTime) <= 0;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+}
+```
+
+### Erklärung
+
+Wir haben eine statische Semantikprüfung für unsere Öffnungszeiten-Sprache implementiert, die sicherstellt, dass Zeiträume logisch sinnvoll sind. Die Prüfung kontrolliert, ob der Starttag vor dem Endtag liegt und die Startzeit vor der Endzeit, um inkonsistente Angaben zu vermeiden. Fehlerhafte Formulierungen werden so frühzeitig erkannt und gemeldet.
+
+Die statische Semantik prüft, ob ein Programm unabhängig von der Ausführung gültig ist. In der Sprache aus Aufgabe 2 können wir folgende statische Semantikregeln definieren:
+
+  - Datum-Validierung: Die im dateRange verwendeten Datumsangaben müssen gültige Kalendertage sein. Beispielsweise darf es keinen 31. Februar geben.
+  - Zeit-Validierung: Die Zeiten im openingRule müssen im gültigen 24-Stunden-Format angegeben sein (was durch die Lexer-Regeln für TIME sichergestellt wird).
+
+Es wäre erst rein Statische Smeantik überprüfung, wenn es im Beispiel Text z.B. mehrere Geschäfte gäbe und man überprüft, das kein Geschäft mehrfach vorkommt. Dadurch wäre die Eindeutigkeit erreicht.
+
+#### Verstöße durch die konkrete Syntax
+
+Die konkrete Syntax erlaubt durch die Definition in Aufgabe 2 folgende potenzielle Verstöße gegen die statische Semantik:
+
+  - Ein Datum wie 31.2. könnte spezifiziert werden, obwohl es ungültig ist.
+  - Die Startzeit kann nach der Endzeit liegen, z. B. Montag 18:00 BIS 09:00 Uhr.
+  - Regeln könnten sich gegenseitig überschneiden oder widersprechen.
+
+### b)
+
+Programmieren Sie für Ihre eigene Sprache aus Aufgabe 2 mindestens eine dynamische Semantik.
+
+### b - Lösung
+
+```
+import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
+
+public class OpeningHoursInterpreter {
+    private final Map<String, List<OpeningRule>> schedule = new HashMap<>();
+
+    public void addRule(String location, String day, String startTime, String endTime) {
+        schedule.computeIfAbsent(location, k -> new ArrayList<>())
+                .add(new OpeningRule(day, startTime, endTime));
+    }
+
+    public boolean isOpen(String location, String day, String time) {
+        if (!schedule.containsKey(location)) {
+            return false;
+        }
+
+        for (OpeningRule rule : schedule.get(location)) {
+            if (rule.day.equals(day) &&
+                rule.startTime.compareTo(time) <= 0 &&
+                rule.endTime.compareTo(time) >= 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static class OpeningRule {
+        String day;
+        String startTime;
+        String endTime;
+
+        OpeningRule(String day, String startTime, String endTime) {
+            this.day = day;
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+    }
+}
+```
+
+Main
+```
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
+
+import java.nio.file.*;
+import java.time.format.DateTimeFormatter;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        // Read input file
+        String inputFilePath = "../Aufgabe2/OeffnungszeitenText.txt";
+        String input = Files.readString(Path.of(inputFilePath));
+
+        // Lexical and syntactic analysis
+        CharStream charStream = CharStreams.fromString(input);
+        OpeningHoursLexer lexer = new OpeningHoursLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        OpeningHoursParser parser = new OpeningHoursParser(tokens);
+
+        ParseTree tree = parser.openingHoursFile();
+
+        // Static Semantics Check
+        StaticSemanticsChecker semanticsChecker = new StaticSemanticsChecker();
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(semanticsChecker, tree);
+
+        if (semanticsChecker.getErrors().isEmpty()) {
+            System.out.println("Static semantics valid.");
+        } else {
+            System.out.println("Static semantics errors:");
+            semanticsChecker.getErrors().forEach(System.out::println);
+        }
+        
+        System.out.println("--------------------");
+        // Dynamic Semantics Example
+        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter();
+        interpreter.addRule("Restaurant", "Montag", "09:00", "17:00");
+
+        boolean isOpen = interpreter.isOpen("Restaurant", "Montag", getTimeNow());
+        System.out.println("Is Restaurant open at " + getTimeNow() + " on Montag? " + isOpen);
+    }
+
+    private static String getTimeNow() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+        return dtf.format(java.time.LocalTime.now());
+    }
+}
+
+```
+
+### Erklärung
+
+#### Dynamische Semantik für die Sprache
+
+Eine dynamische Semantik beschreibt das Verhalten der Sprache während der Laufzeit. Für die Öffnungszeiten-Sprache könnten wir folgende dynamische Semantik realisieren:
+
+  - Abfrage von Öffnungszeiten: Implementation ob ein Gasthaus geöffnet oder geschlossen ist und überprüft wird auf die aktuelle lokale Zeit
+
+### Ausführung
+
+- javac -d ../Aufgabe2/ -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" *.java
+- java -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" Main
+
+
+
+![Output](Aufgabe3/main_ausgeführt.png)
 
 ## Aufgabe 4
 
