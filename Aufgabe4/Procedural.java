@@ -3,6 +3,7 @@ import java.nio.file.Paths;
 import java.io.IOException;
 
 import java.io.BufferedReader;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public final class Procedural {
@@ -35,19 +36,19 @@ public final class Procedural {
   }
 
   private static void removeEmptyLines(LinkedList<String> lines) {
-    for (int i = lines.size() - 1; i >= 0; i--) {
-      if (lines.get(i).trim().isEmpty()) {
-        // Eindeutig prozedurales Löschen der Zeilen
-        lines.remove(i);
+    for (Iterator<String> it = lines.iterator(); it.hasNext(); ) {
+      String line = it.next();
+      if (line.trim().isEmpty()) {
+        it.remove();
       }
     }
   }
 
   private static void removeShortLines(LinkedList<String> lines) {
-    for (int i = lines.size() - 1; i >= 0; i--) {
-      if (lines.get(i).length() < MIN_LENGTH) {
-        // Eindeutig prozedurales Löschen der Zeilen
-        lines.remove(i);
+    for (Iterator<String> it = lines.iterator(); it.hasNext(); ) {
+      String line = it.next();
+      if (line.length() < MIN_LENGTH) {
+        it.remove();
       }
     }
   }
