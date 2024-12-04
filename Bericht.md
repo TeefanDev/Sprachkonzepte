@@ -357,12 +357,30 @@ von int und mit L im Zahlbereich von long liegen.
 
 ### a - Lösung
 
+Test Text
+```
+Bäckerei Täglich Brot
+11.3. bis 30.2.
+Montag bis Freitag 09:00 bis 05:00 Uhr
+Samstag 10:00 bis 14:00 Uhr
+Sonntag Ruhetag
+
+Eisdiele am Hafen
+1.7. bis 30.8.
+Montag bis Samstag 20:00 bis 19:00 Uhr
+Sonntag 11:00 bis 17:00 Uhr
+```
+
+Statischer Semantic Checker
 ```
 import java.util.*;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
     private final List<String> errors = new ArrayList<>();
+    private static final String DATE_FORMAT = "dd.MM";
 
     @Override
     public void exitDateRange(OpeningHoursParser.DateRangeContext ctx) {
@@ -370,7 +388,7 @@ public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
         String endDate = ctx.DATE(1).getText();
 
         if (!isValidDate(startDate) || !isValidDate(endDate)) {
-            errors.add("Ungültiges Datum im Bereich: " + startDate + " bis " + endDate);
+            errors.add("Ungueltiges Datum im Bereich: " + startDate + " bis " + endDate);
         }
     }
 
@@ -381,14 +399,20 @@ public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
             String endTime = ctx.TIME(1).getText();
 
             if (!isValidTimeRange(startTime, endTime)) {
-                errors.add("Ungültiger Zeitraum: " + startTime + " bis " + endTime);
+                errors.add("Ungueltiger Zeitraum: " + startTime + " bis " + endTime + " Uhr");
             }
         }
     }
 
     private boolean isValidDate(String date) {
-        // Dummy-Implementierung zur Prüfung eines gültigen Datums
-        return true; // Datumvalidierung muss hier noch implementiert werden
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        sdf.setLenient(false);
+        try {
+            sdf.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 
     private boolean isValidTimeRange(String startTime, String endTime) {
@@ -409,9 +433,8 @@ Die statische Semantik prüft, ob ein Programm unabhängig von der Ausführung g
 
   - Datum-Validierung: Die im dateRange verwendeten Datumsangaben müssen gültige Kalendertage sein. Beispielsweise darf es keinen 31. Februar geben.
   - Zeit-Validierung: Die Zeiten im openingRule müssen im gültigen 24-Stunden-Format angegeben sein (was durch die Lexer-Regeln für TIME sichergestellt wird).
-  - Tage in der Woche: In einer Regel müssen die Tage zusammenhängend sein, d. h., ein DAY BIS DAY muss eine Reihenfolge haben, die von Montag bis Sonntag geht Beispielsweise ist Freitag BIS Dienstag ungültig.
-  - Zeiträume in Regeln: Die TIME BIS TIME Angabe muss konsistent sein, d. h., die Startzeit darf nicht nach der Endzeit liegen.
-  - Eindeutige Datumsbereiche: Es darf keine überlappenden dateRange-Bereiche geben.
+
+Es wäre erst rein Statische Smeantik überprüfung, wenn es im Beispiel Text z.B. mehrere Geschäfte gäbe und man überprüft, das kein Geschäft mehrfach vorkommt. Dadurch wäre die Eindeutigkeit erreicht.
 
 #### Verstöße durch die konkrete Syntax
 
@@ -471,31 +494,71 @@ public class OpeningHoursInterpreter {
 }
 ```
 
+Main
+```
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.tree.*;
+
+import java.nio.file.*;
+import java.time.format.DateTimeFormatter;
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        // Read input file
+        String inputFilePath = "../Aufgabe2/OeffnungszeitenText.txt";
+        String input = Files.readString(Path.of(inputFilePath));
+
+        // Lexical and syntactic analysis
+        CharStream charStream = CharStreams.fromString(input);
+        OpeningHoursLexer lexer = new OpeningHoursLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        OpeningHoursParser parser = new OpeningHoursParser(tokens);
+
+        ParseTree tree = parser.openingHoursFile();
+
+        // Static Semantics Check
+        StaticSemanticsChecker semanticsChecker = new StaticSemanticsChecker();
+        ParseTreeWalker walker = new ParseTreeWalker();
+        walker.walk(semanticsChecker, tree);
+
+        if (semanticsChecker.getErrors().isEmpty()) {
+            System.out.println("Static semantics valid.");
+        } else {
+            System.out.println("Static semantics errors:");
+            semanticsChecker.getErrors().forEach(System.out::println);
+        }
+        
+        System.out.println("--------------------");
+        // Dynamic Semantics Example
+        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter();
+        interpreter.addRule("Restaurant", "Montag", "09:00", "17:00");
+
+        boolean isOpen = interpreter.isOpen("Restaurant", "Montag", getTimeNow());
+        System.out.println("Is Restaurant open at " + getTimeNow() + " on Montag? " + isOpen);
+    }
+
+    private static String getTimeNow() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+        return dtf.format(java.time.LocalTime.now());
+    }
+}
+
+```
+
 ### Erklärung
 
 #### Dynamische Semantik für die Sprache
 
 Eine dynamische Semantik beschreibt das Verhalten der Sprache während der Laufzeit. Für die Öffnungszeiten-Sprache könnten wir folgende dynamische Semantik realisieren:
 
-  - Abfrage von Öffnungszeiten: Implementieren Sie eine Funktion, die überprüft, ob ein Geschäft zu einer bestimmten Zeit geöffnet ist.
-  - Generierung von Zeitplänen: Generieren Sie einen vollständigen Zeitplan für ein Geschäft auf Basis der definierten Regeln.
+  - Abfrage von Öffnungszeiten: Implementation ob ein Gasthaus geöffnet oder geschlossen ist und überprüft wird auf die aktuelle lokale Zeit
 
 ### Ausführung
 
 - javac -d ../Aufgabe2/ -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" *.java
 - java -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" Main
 
-Wir haben eine main erstellt, in der folgendes überprüft wird:
-
-#### StaticSemanticsChecker:
-
-  - Wird verwendet, um den Baum (ParseTree) auf statische Semantikfehler zu prüfen, wie z. B. ungültige Zeitbereiche oder widersprüchliche Regeln.
-  - Fehler werden gesammelt und in der Konsole ausgegeben.
-
-#### OpeningHoursInterpreter:
-
-  - Simuliert die dynamische Semantik, z. B. durch Prüfung, ob ein Standort geöffnet ist.
-  - In der main-Methode wird ein Beispiel gezeigt, wie Regeln hinzugefügt und Abfragen durchgeführt werden können.
 
 
 ![Output](Aufgabe3/main_ausgeführt.png)

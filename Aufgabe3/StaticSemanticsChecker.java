@@ -1,8 +1,11 @@
 import java.util.*;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
     private final List<String> errors = new ArrayList<>();
+    private static final String DATE_FORMAT = "dd.MM";
 
     @Override
     public void exitDateRange(OpeningHoursParser.DateRangeContext ctx) {
@@ -10,7 +13,7 @@ public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
         String endDate = ctx.DATE(1).getText();
 
         if (!isValidDate(startDate) || !isValidDate(endDate)) {
-            errors.add("Ungültiges Datum im Bereich: " + startDate + " bis " + endDate);
+            errors.add("Ungueltiges Datum im Bereich: " + startDate + " bis " + endDate);
         }
     }
 
@@ -21,14 +24,20 @@ public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
             String endTime = ctx.TIME(1).getText();
 
             if (!isValidTimeRange(startTime, endTime)) {
-                errors.add("Ungültiger Zeitraum: " + startTime + " bis " + endTime);
+                errors.add("Ungueltiger Zeitraum: " + startTime + " bis " + endTime + " Uhr");
             }
         }
     }
 
     private boolean isValidDate(String date) {
-        // Dummy-Implementierung zur Prüfung eines gültigen Datums
-        return true; // Datumvalidierung muss hier noch implementiert werden
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        sdf.setLenient(false);
+        try {
+            sdf.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 
     private boolean isValidTimeRange(String startTime, String endTime) {

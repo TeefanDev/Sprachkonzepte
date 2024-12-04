@@ -2,6 +2,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import java.nio.file.*;
+import java.time.format.DateTimeFormatter;
 import java.io.IOException;
 
 public class Main {
@@ -29,13 +30,18 @@ public class Main {
             System.out.println("Static semantics errors:");
             semanticsChecker.getErrors().forEach(System.out::println);
         }
-
+        
+        System.out.println("--------------------");
         // Dynamic Semantics Example
         OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter();
-        // Add sample rules or load from parsed tree
         interpreter.addRule("Restaurant", "Montag", "09:00", "17:00");
 
-        boolean isOpen = interpreter.isOpen("Restaurant", "Montag", "10:00");
-        System.out.println("Is Restaurant open at 10:00 on Montag? " + isOpen);
+        boolean isOpen = interpreter.isOpen("Restaurant", "Montag", getTimeNow());
+        System.out.println("Is Restaurant open at " + getTimeNow() + " on Montag? " + isOpen);
+    }
+
+    private static String getTimeNow() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+        return dtf.format(java.time.LocalTime.now());
     }
 }
