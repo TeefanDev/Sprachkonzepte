@@ -483,7 +483,7 @@ Eine dynamische Semantik beschreibt das Verhalten der Sprache während der Laufz
 ### Ausführung
 
 - javac -d ../Aufgabe2/ -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" *.java
-- java -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" Main#
+- java -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" Main
 
 Wir haben eine main erstellt, in der folgendes überprüft wird:
 
