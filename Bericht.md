@@ -692,4 +692,135 @@ Der kaum vorhandene Unterschied ist wahrscheinlich auf das Betriebssystem (MacOS
 
 ## Aufgabe 6
 
+Implementieren Sie eine Java-Anwendung, die für beliebige Java-Klassen und -Interfaces eine HTML-Seite im Format der Beispieldatei aufgabe6.html (siehe Moodle-Kursseite) generiert. Leiten Sie dazu aus aufgabe6.html eine Stringtemplategroup-Datei aufgabe6.stg ab. Die Java-Anwendung soll die gewünschten voll qualifizierten Klassen- und Interfacenamen als Aufrufparameter bekommen und mit Hilfe der Templates die HTML-Darstellung erzeugen.
+
+Hinweise:
+- Übergeben Sie dem Wurzel-Template eine Collection oder ein Array von Class<?>-Objekten. Die Objekte erzeugen Sie mit Class.forName(String).
+Die Stringtemplate-Bibliothek ist in der Antlr-Bibliothek enthalten, die Sie bei vorhergehenden Aufgaben bereits verwendet haben. 
+
+### Lösung
+
+Eine Java-Anwendung wurde entwickelt, die aus voll qualifizierten Klassen- und Interfacenamen automatisch eine HTML-Datei erstellt. Diese Datei zeigt die implementierten Interfaces und Methoden der angegebenen Klassen oder Interfaces an.
+
+```
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class HTMLGenerator {
+
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.out.println("Bitte geben Sie mindestens eine Klasse oder ein Interface an.");
+            return;
+        }
+
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<style type=\"text/css\">\n")
+            .append("th, td { border-bottom: thin solid; padding: 4px; text-align: left; }\n")
+            .append("td { font-family: monospace }\n</style>\n</head>\n<body>\n")
+            .append("<h1>Sprachkonzepte, Aufgabe 6</h1>\n");
+
+        for (String className : args) {
+            try {
+                Class<?> clazz = Class.forName(className);
+                generateHTMLForClass(clazz, html);
+            } catch (ClassNotFoundException e) {
+                html.append("<p><b>Klasse oder Interface nicht gefunden:</b> ").append(className).append("</p>\n");
+            }
+        }
+
+        html.append("</body>\n</html>");
+        System.out.println(html);
+    }
+
+    private static void generateHTMLForClass(Class<?> clazz, StringBuilder html) {
+        html.append("<h2>").append(clazz.isInterface() ? "interface " : "class ").append(clazz.getName()).append(":</h2>\n")
+            .append("<table>\n");
+
+        if (clazz.isInterface()) {
+            // Methoden direkt anzeigen, wenn es ein Interface ist
+            appendMethods(clazz.getMethods(), "Methods", html);
+        } else {
+            // Interfaces anzeigen
+            Class<?>[] interfaces = clazz.getInterfaces();
+            if (interfaces.length > 0) {
+                html.append("<tr><th>Interface</th><th>Methods</th></tr>\n");
+                for (Class<?> iface : interfaces) {
+                    html.append("<tr>\n<td valign=top>").append(iface.getName()).append("</td>\n");
+                    html.append("<td>").append(formatMethods(iface.getMethods())).append("</td>\n</tr>\n");
+                }
+            }
+        }
+
+        html.append("</table>\n<br>\n");
+    }
+
+    private static void appendMethods(Method[] methods, String header, StringBuilder html) {
+        if (methods.length > 0) {
+            html.append("<tr><th>").append(header).append("</th></tr>\n<tr><td>")
+                .append(formatMethods(methods))
+                .append("</td></tr>\n");
+        }
+    }
+
+    private static String formatMethods(Method[] methods) {
+        List<String> methodSignatures = new ArrayList<>();
+        for (Method method : methods) {
+            String signature = method.getReturnType().getTypeName() + " " + method.getName() + "(" +
+                    Arrays.stream(method.getParameterTypes())
+                          .map(Class::getTypeName)
+                          .reduce((a, b) -> a + ", " + b)
+                          .orElse("") +
+                    ")";
+            methodSignatures.add(signature);
+        }
+        return String.join("<br>\n", methodSignatures);
+    }
+}
+```
+
+Das Stringtemplate selbst ist in der Datei aufgabe6.stg abgelegt und sieht wie folgt aus:
+
+```
+root(classes) ::= <<
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<style type="text/css">
+th, td { border-bottom: thin solid; padding: 4px; text-align: left; }
+td { font-family: monospace }
+</style>
+</head>
+<body>
+<h1>Sprachkonzepte, Aufgabe 6</h1>
+<% for c in classes %>
+<h2><% if (c.name.startsWith("interface")) { "interface " } else { "class " } %><% c.name %>:</h2>
+<table>
+<% if (c.interfaces.size() > 0) { %>
+<tr><th>Interface</th><th>Methods</th></tr>
+<% for i in c.interfaces %>
+<tr>
+<td valign=top><% i.name %></td>
+<td><% i.methods; separator="<br>" %></td>
+</tr>
+<% end %>
+<% } %>
+<% if (c.methods != null && c.methods.size() > 0) { %>
+<tr><th>Methods</th></tr>
+<tr><td><% c.methods; separator="<br>" %></td></tr>
+<% } %>
+</table>
+<br>
+<% end %>
+</body>
+</html>
+>>
+```
+
+Die Anwendung liest die Klassennamen aus den Eingabeparametern, verwendet Reflection, um Informationen wie Methoden und Interfaces auszulesen, und formatiert diese Daten in HTML. Die Ausgabe wird direkt in die Konsole geschrieben oder kann in eine HTML-Datei umgeleitet werden.
+
+![Output](Aufgabe6/aufgabe6.png)
+
 ## Aufgabe 7

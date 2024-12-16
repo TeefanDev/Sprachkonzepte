@@ -1,0 +1,33 @@
+root(classes) ::= <<
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<style type="text/css">
+th, td { border-bottom: thin solid; padding: 4px; text-align: left; }
+td { font-family: monospace }
+</style>
+</head>
+<body>
+<h1>Sprachkonzepte, Aufgabe 6</h1>
+<% for c in classes %>
+<h2><% if (c.name.startsWith("interface")) { "interface " } else { "class " } %><% c.name %>:</h2>
+<table>
+<% if (c.interfaces.size() > 0) { %>
+<tr><th>Interface</th><th>Methods</th></tr>
+<% for i in c.interfaces %>
+<tr>
+<td valign=top><% i.name %></td>
+<td><% i.methods; separator="<br>" %></td>
+</tr>
+<% end %>
+<% } %>
+<% if (c.methods != null && c.methods.size() > 0) { %>
+<tr><th>Methods</th></tr>
+<tr><td><% c.methods; separator="<br>" %></td></tr>
+<% } %>
+</table>
+<br>
+<% end %>
+</body>
+</html>
+>>
