@@ -749,17 +749,15 @@ zug( karlsruhe , 12.06 , mainz , 13.47) .
 zug( stuttgart , 11.51 , mannheim , 12.28) .
 zug( mannheim , 12.39 , mainz , 13.18) .
 
-verbindung (Start ,Uhr ,Ziel ,Res) :-
-zug (Start ,SUhr ,Ziel , EndZeit ),
-SUhr >= Uhr ,
-append ([ Start ,SUhr ,Ziel , EndZeit ],[] , Res )
-;
-zug (Start ,SUhr ,Neu , EndZeit ),
-SUhr >= Uhr ,
-verbindung (Neu , EndZeit ,Ziel ,L),
-append ([ Start ,SUhr ,Neu , EndZeit ],L,Res ).
-```
+verbindung(Start, Startzeit, Ziel, [zug(Start, Abfahrtszeit, Ziel, Ankunftszeit)]) :-
+zug(Start, Abfahrtszeit, Ziel, Ankunftszeit),
+Abfahrtszeit >= Startzeit.
 
+verbindung(Start, Abfahrtszeit, Ziel, [zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit) | Rest]) :-
+zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit),
+Abfahrtszeit >= Abfahrtszeit,
+verbindung(Zwischenhalt, Ankunftszeit, Ziel, Rest).
+```
 
 ## Aufgabe 6
 
