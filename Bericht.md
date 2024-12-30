@@ -893,3 +893,52 @@ Die Anwendung liest die Klassennamen aus den Eingabeparametern, verwendet Reflec
 ![Output](Aufgabe6/aufgabe6.png)
 
 ## Aufgabe 7
+
+Implementieren Sie eine kleine Anwendung mit einer Scriptsprache und analysieren Sie, welche typischen Eigenschaften einer Scriptsprache Sie dabei ausnutzen.
+
+Vorschläge:
+
+- JavaScript in einer Webseite
+- Abfrage eines Webservice mit Python, z.B. Feiertage bei feiertage-api.de oder Wechselkurse bei zoll.de -> Service -> Online-Fachanwendungen ...
+
+### Lösung
+
+Wir haben die Script Sprache Python verwendet und das vorgeschlagene Beispiel einen Webservice aufzurufen.
+
+
+```
+import requests
+
+def get_holidays(year, country_code):
+    """
+    Ruft Feiertage für ein bestimmtes Jahr und Land ab.
+    """
+    url = f"https://feiertage-api.de/api/?jahr={year}&nur_land={country_code}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        holidays = response.json()
+        return holidays
+    except requests.RequestException as e:
+        print(f"Fehler beim Abrufen der Feiertage: {e}")
+        return None
+
+def main():
+    year = input("Geben Sie das Jahr ein (z.B. 2024): ")
+    country_code = input("Geben Sie den Ländercode ein (z.B. BW für Baden Württemberg): ").upper()
+    holidays = get_holidays(year, country_code)
+
+    if holidays:
+        print(f"\nFeiertage in {country_code} für {year}:")
+        for name, details in holidays.items():
+            print(f"- {name}: {details['datum']}")
+    else:
+        print("Keine Feiertage gefunden.")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Erklärung
+
+Durch die dynamische Typisierung können Variablen ohne explizite Typdeklaration verwendet werden, was die Entwicklung vereinfacht und beschleunigt. Da Python eine interpretierte Sprache ist, wird der Code direkt zur Laufzeit ausgeführt, wodurch Änderungen sofort getestet werden können, ohne dass ein Kompilierungsschritt erforderlich ist. Die hohe Abstraktion der Sprache ermöglicht es, komplexe Aufgaben wie HTTP-Anfragen mit wenigen Zeilen Code und Bibliotheken wie requests umzusetzen. Fehlerbehandlung ist einfach und robust durch die Verwendung von Ausnahmen, wodurch beispielsweise Netzwerkprobleme kontrolliert abgefangen werden. Zusätzlich erweitert die Unterstützung durch umfangreiche Bibliotheken den Funktionsumfang erheblich, ohne dass komplexer Eigenaufwand nötig ist. Schließlich erlaubt die interaktive Entwicklungsumgebung von Python ein schnelles Prototyping und erleichtert die Anpassung des Codes während der Entwicklung.
