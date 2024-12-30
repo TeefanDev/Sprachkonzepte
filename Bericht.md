@@ -690,6 +690,75 @@ Der kaum vorhandene Unterschied ist wahrscheinlich auf das Betriebssystem (MacOS
 
 ## Aufgabe 5
 
+### a)
+
+Lösen Sie die Aufgaben von 
+
+#### Folie 25 (rechte Spalte der Tabelle)
+
+#### Lösung
+
+![5a-1](Aufgabe5/5a-1.png)
+
+#### 26 (Berechnung Fakultät)
+
+#### 28 (Anfragen letzter Spiegelpunkt) aus Eck-Prolog.pdf.
+
+### b)
+
+Programmieren Sie ein Prädikat sum, das die Summe einer Liste von Zahlen berechnet.
+Hinweis: Sie müssen Rekursion verwenden.
+
+#### Lösung
+
+```
+sum ([] , 0).
+sum ([H|T], R) :-
+sum (T, Rest ),
+R is H + Rest .
+```
+
+![5b](Aufgabe5/5b.png)
+
+### c)
+
+Sie wollen zu einer Werksbesichtigung von BioNTech in Mainz reisen. Dazu brauchen Sie eine Bahnverbindung. Gegeben sind die folgenden Fakten:
+    zug(konstanz, 08.39, offenburg, 10.59).
+    zug(konstanz, 08.39, karlsruhe, 11.49).
+    zug(konstanz, 09.06, singen, 09.31).
+    zug(singen, 09.36, stuttgart, 11.32).
+    zug(offenburg, 11.28, mannheim, 12.24).
+    zug(karlsruhe, 12.06, mainz, 13.47).
+    zug(stuttgart, 11.51, mannheim, 12.28).
+    zug(mannheim, 12.39, mainz, 13.18).
+
+Definieren Sie ein Prädikat verbindung, das beschreibt, ob zwischen zwei Städten nach einer gegebenen Abfahrtszeit eine Verbindung inklusive Umsteigen existiert.
+Hinweise: Sie brauchen auch hier Rekursion. Beim Umsteigen muss Abfahrtszeit > Ankunftszeit gelten.
+
+Eine Abfrage verbindung(konstanz, 8.00, mainz, Reiseplan) soll nacheinander die möglichen Reiseverbindungen nach 8 Uhr in der Variablen Reiseplan liefern. Die Variable Reiseplan soll eine Liste von Teilstrecken in Form von zug-Strukturen sein.
+
+#### Lösung
+
+```
+zug( konstanz , 08.39 , offenburg , 10.59) .
+zug( konstanz , 08.39 , karlsruhe , 11.49) .
+zug( konstanz , 08.53 , singen , 09.26) .
+zug(singen , 09.37 , stuttgart , 11.32) .
+zug( offenburg , 11.29 , mannheim , 12.24) .
+zug( karlsruhe , 12.06 , mainz , 13.47) .
+zug( stuttgart , 11.51 , mannheim , 12.28) .
+zug( mannheim , 12.39 , mainz , 13.18) .
+
+verbindung(Start, Startzeit, Ziel, [zug(Start, Abfahrtszeit, Ziel, Ankunftszeit)]) :-
+zug(Start, Abfahrtszeit, Ziel, Ankunftszeit),
+Abfahrtszeit >= Startzeit.
+
+verbindung(Start, Abfahrtszeit, Ziel, [zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit) | Rest]) :-
+zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit),
+Abfahrtszeit >= Abfahrtszeit,
+verbindung(Zwischenhalt, Ankunftszeit, Ziel, Rest).
+```
+
 ## Aufgabe 6
 
 Implementieren Sie eine Java-Anwendung, die für beliebige Java-Klassen und -Interfaces eine HTML-Seite im Format der Beispieldatei aufgabe6.html (siehe Moodle-Kursseite) generiert. Leiten Sie dazu aus aufgabe6.html eine Stringtemplategroup-Datei aufgabe6.stg ab. Die Java-Anwendung soll die gewünschten voll qualifizierten Klassen- und Interfacenamen als Aufrufparameter bekommen und mit Hilfe der Templates die HTML-Darstellung erzeugen.
