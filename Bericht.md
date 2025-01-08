@@ -711,13 +711,13 @@ Lösen Sie die Aufgaben von
 
 ```
 % Basisfall: 0! = 1
-fakultaet(0, 1).
+fak(0, 1).
 
 % Rekursiver Fall: N! = N * (N-1)!
-fakultaet(N, F) :-
+fak(N, F) :-
 N > 0,               % n muss positiv sein
 N1 is N - 1,
-fakultaet(N1, F1),   % Rekursiver Aufruf für (n-1)!
+fak(N1, F1),   % Rekursiver Aufruf für (n-1)!
 F is N * F1.
 ```
 
