@@ -702,15 +702,32 @@ Lösen Sie die Aufgaben von
 
 #### Folie 25 (rechte Spalte der Tabelle)
 
-#### Lösung
+
+##### Lösung
 
 ![5a-1](Aufgabe5/5a-1.png)
 
-hier sieht man die fakultät-berechnung:
-
 #### 26 (Berechnung Fakultät)
 
+```
+% Basisfall: 0! = 1
+fakultaet(0, 1).
+
+% Rekursiver Fall: N! = N * (N-1)!
+fakultaet(N, F) :-
+N > 0,               % n muss positiv sein
+N1 is N - 1,
+fakultaet(N1, F1),   % Rekursiver Aufruf für (n-1)!
+F is N * F1.
+```
+
+Aufrufe:
+
+![5a-2](Aufgabe5/5a-2.png)
+
 #### 28 (Anfragen letzter Spiegelpunkt) aus Eck-Prolog.pdf.
+
+![5a-3](Aufgabe5/5a-3.png)
 
 ### b)
 
@@ -757,24 +774,21 @@ zug( karlsruhe , 12.06 , mainz , 13.47) .
 zug( stuttgart , 11.51 , mannheim , 12.28) .
 zug( mannheim , 12.39 , mainz , 13.18) .
 
-verbindung(Start, Startzeit, Ziel, [zug(Start, Abfahrtszeit, Ziel, Ankunftszeit)]) :-
-zug(Start, Abfahrtszeit, Ziel, Ankunftszeit),
-Abfahrtszeit >= Startzeit.
-
-verbindung(Start, Abfahrtszeit, Ziel, [zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit) | Rest]) :-
-zug(Start, Abfahrtszeit, Zwischenhalt, Ankunftszeit),
-Abfahrtszeit >= Abfahrtszeit,
-verbindung(Zwischenhalt, Ankunftszeit, Ziel, Rest).
+verbindung (Start ,Uhr ,Ziel ,Res) :-
+    zug (Start ,SUhr ,Ziel , EndZeit ),
+    SUhr >= Uhr ,
+    append ([ Start ,SUhr ,Ziel , EndZeit ],[] , Res )
+    ;
+    zug (Start ,SUhr ,Neu , EndZeit ),
+    SUhr >= Uhr ,
+    verbindung (Neu , EndZeit ,Ziel ,L),
+    append ([ Start ,SUhr ,Neu , EndZeit ],L,Res ).
 ```
 
 für verbindung(konstanz, 08.00, mainz, Reiseplan) erhalten wir die ausgabe:
 
-```
-Reiseplan = [
-    zug(konstanz, 08.39, karlsruhe, 11.49),
-    zug(karlsruhe, 12.06, mainz, 13.47)
-].
-```
+
+![5c](Aufgabe5/5c.png)
 
 ## Aufgabe 6
 
