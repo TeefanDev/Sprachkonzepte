@@ -269,6 +269,10 @@ Token Type: KW_RUHETAG, Token Text: Ruhetag
 
 ## Aufgabe 2
 
+### Code
+
+siehe im zip file
+
 ### 2a)
 
 ### Aufgabenstellung
@@ -559,9 +563,11 @@ Eine dynamische Semantik beschreibt das Verhalten der Sprache während der Laufz
 - javac -d ../Aufgabe2/ -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" *.java
 - java -cp ".;..\antlr-4.13.2-complete.jar;../Aufgabe2/" Main
 
-
+#### Lösung
 
 ![Output](Aufgabe3/main_ausgeführt.png)
+
+wie auch bereits in der Übung gezeigt ist hier die abfrage auf eine Wunschzeit zu sehen und diese wird auch mit true beantwortet.
 
 ## Aufgabe 4
 
@@ -700,6 +706,8 @@ Lösen Sie die Aufgaben von
 
 ![5a-1](Aufgabe5/5a-1.png)
 
+hier sieht man die fakultät-berechnung:
+
 #### 26 (Berechnung Fakultät)
 
 #### 28 (Anfragen letzter Spiegelpunkt) aus Eck-Prolog.pdf.
@@ -759,6 +767,15 @@ Abfahrtszeit >= Abfahrtszeit,
 verbindung(Zwischenhalt, Ankunftszeit, Ziel, Rest).
 ```
 
+für verbindung(konstanz, 08.00, mainz, Reiseplan) erhalten wir die ausgabe:
+
+```
+Reiseplan = [
+    zug(konstanz, 08.39, karlsruhe, 11.49),
+    zug(karlsruhe, 12.06, mainz, 13.47)
+].
+```
+
 ## Aufgabe 6
 
 Implementieren Sie eine Java-Anwendung, die für beliebige Java-Klassen und -Interfaces eine HTML-Seite im Format der Beispieldatei aufgabe6.html (siehe Moodle-Kursseite) generiert. Leiten Sie dazu aus aufgabe6.html eine Stringtemplategroup-Datei aufgabe6.stg ab. Die Java-Anwendung soll die gewünschten voll qualifizierten Klassen- und Interfacenamen als Aufrufparameter bekommen und mit Hilfe der Templates die HTML-Darstellung erzeugen.
@@ -772,80 +789,64 @@ Die Stringtemplate-Bibliothek ist in der Antlr-Bibliothek enthalten, die Sie bei
 Eine Java-Anwendung wurde entwickelt, die aus voll qualifizierten Klassen- und Interfacenamen automatisch eine HTML-Datei erstellt. Diese Datei zeigt die implementierten Interfaces und Methoden der angegebenen Klassen oder Interfaces an.
 
 ```
-import java.lang.reflect.Method;
-import java.util.ArrayList;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroupFile;
+
 import java.util.Arrays;
 import java.util.List;
 
-public class HTMLGenerator {
+public final class HTMLGenerator {
 
     public static void main(String[] args) {
-        if (args.length == 0) {
-            System.out.println("Bitte geben Sie mindestens eine Klasse oder ein Interface an.");
-            return;
-        }
+        ST templ = new STGroupFile("aufgabe6.stg").getInstanceOf("docpage");
 
-        StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<style type=\"text/css\">\n")
-            .append("th, td { border-bottom: thin solid; padding: 4px; text-align: left; }\n")
-            .append("td { font-family: monospace }\n</style>\n</head>\n<body>\n")
-            .append("<h1>Sprachkonzepte, Aufgabe 6</h1>\n");
+        List<? extends Class<?>> classes = Arrays.stream(args)
+                .map(arg -> {
+                    try {
+                        return Class.forName(arg);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+        templ.add("p", classes.stream().map(ClassInfo::new).toList());
 
-        for (String className : args) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                generateHTMLForClass(clazz, html);
-            } catch (ClassNotFoundException e) {
-                html.append("<p><b>Klasse oder Interface nicht gefunden:</b> ").append(className).append("</p>\n");
-            }
-        }
-
-        html.append("</body>\n</html>");
-        System.out.println(html);
+        String result = templ.render();
+        System.out.println(result);
     }
+}
 
-    private static void generateHTMLForClass(Class<?> clazz, StringBuilder html) {
-        html.append("<h2>").append(clazz.isInterface() ? "interface " : "class ").append(clazz.getName()).append(":</h2>\n")
-            .append("<table>\n");
+final class ClassInfo {
+    public final String name;
+    public final boolean hasNoInterface;
+    public final boolean hasMethods;
+    public final List<String> classMethods;
+    public List<InterfaceInfo> interfaces;
 
-        if (clazz.isInterface()) {
-            // Methoden direkt anzeigen, wenn es ein Interface ist
-            appendMethods(clazz.getMethods(), "Methods", html);
-        } else {
-            // Interfaces anzeigen
-            Class<?>[] interfaces = clazz.getInterfaces();
-            if (interfaces.length > 0) {
-                html.append("<tr><th>Interface</th><th>Methods</th></tr>\n");
-                for (Class<?> iface : interfaces) {
-                    html.append("<tr>\n<td valign=top>").append(iface.getName()).append("</td>\n");
-                    html.append("<td>").append(formatMethods(iface.getMethods())).append("</td>\n</tr>\n");
-                }
-            }
-        }
+    public ClassInfo(Class<?> c) {
+        this.name = c.getName();
+        this.interfaces = Arrays.stream(c.getInterfaces()).map(InterfaceInfo::new).toList();
+        this.hasNoInterface = interfaces.isEmpty();
 
-        html.append("</table>\n<br>\n");
+        this.classMethods = Arrays.stream(c.getMethods())
+                .map(x -> x.getReturnType() + " " + x.getName() + "(" + Arrays.toString(x.getParameterTypes()) + ")")
+                .filter(o -> this.interfaces.stream().noneMatch(i -> i.methods.contains(o)))
+                .toList();
+        this.hasMethods = !classMethods.isEmpty();
     }
+}
 
-    private static void appendMethods(Method[] methods, String header, StringBuilder html) {
-        if (methods.length > 0) {
-            html.append("<tr><th>").append(header).append("</th></tr>\n<tr><td>")
-                .append(formatMethods(methods))
-                .append("</td></tr>\n");
-        }
-    }
+final class InterfaceInfo {
+    public final String name;
+    public final List<String> methods;
 
-    private static String formatMethods(Method[] methods) {
-        List<String> methodSignatures = new ArrayList<>();
-        for (Method method : methods) {
-            String signature = method.getReturnType().getTypeName() + " " + method.getName() + "(" +
-                    Arrays.stream(method.getParameterTypes())
-                          .map(Class::getTypeName)
-                          .reduce((a, b) -> a + ", " + b)
-                          .orElse("") +
-                    ")";
-            methodSignatures.add(signature);
-        }
-        return String.join("<br>\n", methodSignatures);
+    public InterfaceInfo(Class<?> i) {
+        this.name = i.getName();
+        this.methods = Arrays.stream(i.getMethods()).map(
+                x -> x.getReturnType() + " " + x.getName()
+                        + "(" + Arrays.toString(x.getParameterTypes())
+                        .replace('[', ' ').replace(']', ' ') + ")"
+        ).toList();
     }
 }
 ```
@@ -853,40 +854,58 @@ public class HTMLGenerator {
 Das Stringtemplate selbst ist in der Datei aufgabe6.stg abgelegt und sieht wie folgt aus:
 
 ```
-root(classes) ::= <<
+delimiters "$", "$"
+
+docpage(p) ::= <<
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
-<style type="text/css">
-th, td { border-bottom: thin solid; padding: 4px; text-align: left; }
-td { font-family: monospace }
-</style>
+    <meta charset="UTF-8">
+    <title>Sprachkonzepte Aufgabe 6</title>
+
+    <style>
+    html { background: whitesmoke; }
+    th, td { border-bottom: thin solid; padding: 4px; text-align: left; }
+    td { font-family: monospace }
+    </style>
 </head>
 <body>
-<h1>Sprachkonzepte, Aufgabe 6</h1>
-<% for c in classes %>
-<h2><% if (c.name.startsWith("interface")) { "interface " } else { "class " } %><% c.name %>:</h2>
-<table>
-<% if (c.interfaces.size() > 0) { %>
-<tr><th>Interface</th><th>Methods</th></tr>
-<% for i in c.interfaces %>
-<tr>
-<td valign=top><% i.name %></td>
-<td><% i.methods; separator="<br>" %></td>
-</tr>
-<% end %>
-<% } %>
-<% if (c.methods != null && c.methods.size() > 0) { %>
-<tr><th>Methods</th></tr>
-<tr><td><% c.methods; separator="<br>" %></td></tr>
-<% } %>
-</table>
-<br>
-<% end %>
+<h1>Sprachkonzepte Aufgabe 6</h1>
+$p:classdoc(); separator="\n"$
 </body>
 </html>
 >>
+
+classdoc(l) ::= <<
+<h2>$l.name$</h2>
+<table>
+    <tbody>
+        <tr>
+            $if(!l.hasNoInterface)$<th>Interface</th>$endif$
+            <th>Methods</th>
+        </tr>
+        $l.interfaces:rowdoc(); separator="\n"$
+        $if(l.hasNoInterface && l.hasMethods)$<tr><td>$l.classMethods; separator="<br>"$</td></tr>$endif$
+    </tbody>
+</table>
+>>
+
+rowdoc(c) ::= <<
+<tr>
+    <td valign="top">
+    $c.name$
+    </td>
+    <td>
+        $c.methods; separator="<br>"$
+    </td>
+</tr>
+>>
 ```
+
+#### Befehle
+
+- javac -cp ".;ST4-4.3.jar;..\antlr-4.13.2-complete.jar" HTMLGenerator.java
+- java -cp ".;ST4-4.3.jar;..\antlr-4.13.2-complete.jar" HTMLGenerator java.lang.String java.util.List > aufgabe6.html
 
 Die Anwendung liest die Klassennamen aus den Eingabeparametern, verwendet Reflection, um Informationen wie Methoden und Interfaces auszulesen, und formatiert diese Daten in HTML. Die Ausgabe wird direkt in die Konsole geschrieben oder kann in eine HTML-Datei umgeleitet werden.
 

@@ -1,76 +1,60 @@
-import java.lang.reflect.Method;
-import java.util.ArrayList;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroupFile;
+
 import java.util.Arrays;
 import java.util.List;
 
-public class HTMLGenerator {
+public final class HTMLGenerator {
 
     public static void main(String[] args) {
-        if (args.length == 0) {
-            System.out.println("Bitte geben Sie mindestens eine Klasse oder ein Interface an.");
-            return;
-        }
+        ST templ = new STGroupFile("aufgabe6.stg").getInstanceOf("docpage");
 
-        StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html>\n<html lang=\"de\">\n<head>\n<style type=\"text/css\">\n")
-            .append("th, td { border-bottom: thin solid; padding: 4px; text-align: left; }\n")
-            .append("td { font-family: monospace }\n</style>\n</head>\n<body>\n")
-            .append("<h1>Sprachkonzepte, Aufgabe 6</h1>\n");
+        List<? extends Class<?>> classes = Arrays.stream(args)
+                .map(arg -> {
+                    try {
+                        return Class.forName(arg);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+        templ.add("p", classes.stream().map(ClassInfo::new).toList());
 
-        for (String className : args) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                generateHTMLForClass(clazz, html);
-            } catch (ClassNotFoundException e) {
-                html.append("<p><b>Klasse oder Interface nicht gefunden:</b> ").append(className).append("</p>\n");
-            }
-        }
-
-        html.append("</body>\n</html>");
-        System.out.println(html);
+        String result = templ.render();
+        System.out.println(result);
     }
+}
 
-    private static void generateHTMLForClass(Class<?> clazz, StringBuilder html) {
-        html.append("<h2>").append(clazz.isInterface() ? "interface " : "class ").append(clazz.getName()).append(":</h2>\n")
-            .append("<table>\n");
+final class ClassInfo {
+    public final String name;
+    public final boolean hasNoInterface;
+    public final boolean hasMethods;
+    public final List<String> classMethods;
+    public List<InterfaceInfo> interfaces;
 
-        if (clazz.isInterface()) {
-            // Methoden direkt anzeigen, wenn es ein Interface ist
-            appendMethods(clazz.getMethods(), "Methods", html);
-        } else {
-            // Interfaces anzeigen
-            Class<?>[] interfaces = clazz.getInterfaces();
-            if (interfaces.length > 0) {
-                html.append("<tr><th>Interface</th><th>Methods</th></tr>\n");
-                for (Class<?> iface : interfaces) {
-                    html.append("<tr>\n<td valign=top>").append(iface.getName()).append("</td>\n");
-                    html.append("<td>").append(formatMethods(iface.getMethods())).append("</td>\n</tr>\n");
-                }
-            }
-        }
+    public ClassInfo(Class<?> c) {
+        this.name = c.getName();
+        this.interfaces = Arrays.stream(c.getInterfaces()).map(InterfaceInfo::new).toList();
+        this.hasNoInterface = interfaces.isEmpty();
 
-        html.append("</table>\n<br>\n");
+        this.classMethods = Arrays.stream(c.getMethods())
+                .map(x -> x.getReturnType() + " " + x.getName() + "(" + Arrays.toString(x.getParameterTypes()) + ")")
+                .filter(o -> this.interfaces.stream().noneMatch(i -> i.methods.contains(o)))
+                .toList();
+        this.hasMethods = !classMethods.isEmpty();
     }
+}
 
-    private static void appendMethods(Method[] methods, String header, StringBuilder html) {
-        if (methods.length > 0) {
-            html.append("<tr><th>").append(header).append("</th></tr>\n<tr><td>")
-                .append(formatMethods(methods))
-                .append("</td></tr>\n");
-        }
-    }
+final class InterfaceInfo {
+    public final String name;
+    public final List<String> methods;
 
-    private static String formatMethods(Method[] methods) {
-        List<String> methodSignatures = new ArrayList<>();
-        for (Method method : methods) {
-            String signature = method.getReturnType().getTypeName() + " " + method.getName() + "(" +
-                    Arrays.stream(method.getParameterTypes())
-                          .map(Class::getTypeName)
-                          .reduce((a, b) -> a + ", " + b)
-                          .orElse("") +
-                    ")";
-            methodSignatures.add(signature);
-        }
-        return String.join("<br>\n", methodSignatures);
+    public InterfaceInfo(Class<?> i) {
+        this.name = i.getName();
+        this.methods = Arrays.stream(i.getMethods()).map(
+                x -> x.getReturnType() + " " + x.getName()
+                        + "(" + Arrays.toString(x.getParameterTypes())
+                        .replace('[', ' ').replace(']', ' ') + ")"
+        ).toList();
     }
 }
