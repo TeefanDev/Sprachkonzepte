@@ -455,44 +455,65 @@ Programmieren Sie für Ihre eigene Sprache aus Aufgabe 2 mindestens eine dynamis
 ### b - Lösung
 
 ```
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class OpeningHoursInterpreter {
-    private final Map<String, List<OpeningRule>> schedule = new HashMap<>();
+    private final List<Location> locations;
+    private static final String TIME_FORMAT = "HH:mm";
 
-    public void addRule(String location, String day, String startTime, String endTime) {
-        schedule.computeIfAbsent(location, k -> new ArrayList<>())
-                .add(new OpeningRule(day, startTime, endTime));
+    public OpeningHoursInterpreter(List<Location> locations) {
+        this.locations = locations;
     }
 
-    public boolean isOpen(String location, String day, String time) {
-        if (!schedule.containsKey(location)) {
-            return false;
+    public List<String> getOpenLocations(String day, String time) {
+        List<String> openLocations = new ArrayList<>();
+        for (Location location : locations) {
+            if (isLocationOpen(location, day, time)) {
+                openLocations.add(location.name);
+            }
         }
+        return openLocations;
+    }
 
-        for (OpeningRule rule : schedule.get(location)) {
-            if (rule.day.equals(day) &&
-                rule.startTime.compareTo(time) <= 0 &&
-                rule.endTime.compareTo(time) >= 0) {
+    public boolean isOpen(String locationName, String day, String time) {
+        for (Location location : locations) {
+            if (location.name.equalsIgnoreCase(locationName) && isLocationOpen(location, day, time)) {
                 return true;
             }
         }
-
         return false;
     }
 
-    private static class OpeningRule {
-        String day;
-        String startTime;
-        String endTime;
+    private boolean isLocationOpen(Location location, String day, String time) {
+        for (DateRange dateRange : location.dateRanges) {
+            for (OpeningRule rule : dateRange.openingRules) {
+                if (rule instanceof OpenHoursRule openRule) {
+                    if (openRule.startDay.equals(day) || openRule.endDay.equals(day)) {
+                        if (isValidTimeRange(openRule.startTime, openRule.endTime, time)) {
+                            return true;
+                        }
+                    }
+                } else if (rule instanceof RestDayRule restRule) {
+                    if (restRule.day.equals(day)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
-        OpeningRule(String day, String startTime, String endTime) {
-            this.day = day;
-            this.startTime = startTime;
-            this.endTime = endTime;
+    private boolean isValidTimeRange(String startTime, String endTime, String checkTime) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT);
+            Date start = sdf.parse(startTime);
+            Date end = sdf.parse(endTime);
+            Date check = sdf.parse(checkTime);
+            return !check.before(start) && !check.after(end);
+        } catch (ParseException e) {
+            return false;
         }
     }
 }
@@ -505,6 +526,8 @@ import org.antlr.v4.runtime.tree.*;
 
 import java.nio.file.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.IOException;
 
 public class Main {
@@ -514,6 +537,7 @@ public class Main {
         String input = Files.readString(Path.of(inputFilePath));
 
         // Lexical and syntactic analysis
+        System.out.println("Aufgabe 3a");
         CharStream charStream = CharStreams.fromString(input);
         OpeningHoursLexer lexer = new OpeningHoursLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -534,12 +558,29 @@ public class Main {
         }
         
         System.out.println("--------------------");
-        // Dynamic Semantics Example
-        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter();
-        interpreter.addRule("Restaurant", "Montag", "09:00", "17:00");
+        System.out.println("Aufgabe 3b");
 
-        boolean isOpen = interpreter.isOpen("Restaurant", "Montag", getTimeNow());
-        System.out.println("Is Restaurant open at " + getTimeNow() + " on Montag? " + isOpen);
+        List<Location> locations = new ArrayList<>();
+        
+        List<OpeningRule> rules = new ArrayList<>();
+        rules.add(new OpenHoursRule("Montag", "Freitag", "09:00", "17:00"));
+        rules.add(new RestDayRule("Sonntag"));
+
+        List<DateRange> dateRanges = new ArrayList<>();
+        dateRanges.add(new DateRange("11.01.", "30.2.", rules));
+
+        locations.add(new Location("Baeckerei Taeglich Brot", dateRanges));
+        locations.add(new Location("Supermarkt", dateRanges));
+
+        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter(locations);
+
+        String day = "Montag";
+        String day2 = "Sonntag";
+        boolean isOpen = interpreter.isOpen("Baeckerei Taeglich Brot", day, getTimeNow());
+        System.out.println("Ist 'Baeckerei Taeglich Brot' am " + day + " um " + getTimeNow() + " geoeffnet? " + isOpen);
+        boolean isOpen2 = interpreter.isOpen("Baeckerei Taeglich Brot", day2, getTimeNow());
+        System.out.println("Ist 'Baeckerei Taeglich Brot' am " + day2 + " um " + getTimeNow() + " geoeffnet? " + isOpen2);
+        System.out.println("Offene Locations " + day + " " + getTimeNow() + ": " + interpreter.getOpenLocations(day, getTimeNow()));
     }
 
     private static String getTimeNow() {
@@ -547,7 +588,6 @@ public class Main {
         return dtf.format(java.time.LocalTime.now());
     }
 }
-
 ```
 
 ### Erklärung
