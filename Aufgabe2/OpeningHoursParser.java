@@ -19,11 +19,10 @@ public class OpeningHoursParser extends Parser {
 		NEWLINE=1, WS=2, COMMENT=3, DATE=4, TIME=5, BIS=6, RUHETAG=7, UHR=8, DAY=9, 
 		IDENTIFIER=10, InvalidChar=11;
 	public static final int
-		RULE_openingHoursFile = 0, RULE_openingHours = 1, RULE_location = 2, RULE_dateRange = 3, 
-		RULE_openingRule = 4;
+		RULE_openingHoursFile = 0, RULE_openingHours = 1, RULE_location = 2, RULE_dateRange = 3;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"openingHoursFile", "openingHours", "location", "dateRange", "openingRule"
+			"openingHoursFile", "openingHours", "location", "dateRange"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -125,31 +124,31 @@ public class OpeningHoursParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(14); 
+			setState(12); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(10);
+				setState(8);
 				openingHours();
-				setState(12);
+				setState(10);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 				if (_la==NEWLINE) {
 					{
-					setState(11);
+					setState(9);
 					match(NEWLINE);
 					}
 				}
 
 				}
 				}
-				setState(16); 
+				setState(14); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
-			setState(18);
+			setState(16);
 			match(EOF);
 			}
 		}
@@ -175,12 +174,6 @@ public class OpeningHoursParser extends Parser {
 		public DateRangeContext dateRange(int i) {
 			return getRuleContext(DateRangeContext.class,i);
 		}
-		public List<OpeningRuleContext> openingRule() {
-			return getRuleContexts(OpeningRuleContext.class);
-		}
-		public OpeningRuleContext openingRule(int i) {
-			return getRuleContext(OpeningRuleContext.class,i);
-		}
 		public OpeningHoursContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -202,33 +195,19 @@ public class OpeningHoursParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(20);
+			setState(18);
 			location();
-			setState(27); 
+			setState(20); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(21);
+				setState(19);
 				dateRange();
-				setState(23); 
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-				do {
-					{
-					{
-					setState(22);
-					openingRule();
-					}
-					}
-					setState(25); 
-					_errHandler.sync(this);
-					_la = _input.LA(1);
-				} while ( _la==DAY );
 				}
 				}
-				setState(29); 
+				setState(22); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==DATE );
@@ -272,17 +251,17 @@ public class OpeningHoursParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(32); 
+			setState(25); 
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			do {
 				{
 				{
-				setState(31);
+				setState(24);
 				match(IDENTIFIER);
 				}
 				}
-				setState(34); 
+				setState(27); 
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			} while ( _la==IDENTIFIER );
@@ -305,7 +284,19 @@ public class OpeningHoursParser extends Parser {
 		public TerminalNode DATE(int i) {
 			return getToken(OpeningHoursParser.DATE, i);
 		}
-		public TerminalNode BIS() { return getToken(OpeningHoursParser.BIS, 0); }
+		public List<TerminalNode> BIS() { return getTokens(OpeningHoursParser.BIS); }
+		public TerminalNode BIS(int i) {
+			return getToken(OpeningHoursParser.BIS, i);
+		}
+		public List<TerminalNode> DAY() { return getTokens(OpeningHoursParser.DAY); }
+		public TerminalNode DAY(int i) {
+			return getToken(OpeningHoursParser.DAY, i);
+		}
+		public List<TerminalNode> TIME() { return getTokens(OpeningHoursParser.TIME); }
+		public TerminalNode TIME(int i) {
+			return getToken(OpeningHoursParser.TIME, i);
+		}
+		public TerminalNode UHR() { return getToken(OpeningHoursParser.UHR, 0); }
 		public DateRangeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -326,111 +317,26 @@ public class OpeningHoursParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(36);
+			setState(29);
 			match(DATE);
-			setState(37);
+			setState(30);
 			match(BIS);
-			setState(38);
+			setState(31);
 			match(DATE);
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	@SuppressWarnings("CheckReturnValue")
-	public static class OpeningRuleContext extends ParserRuleContext {
-		public List<TerminalNode> DAY() { return getTokens(OpeningHoursParser.DAY); }
-		public TerminalNode DAY(int i) {
-			return getToken(OpeningHoursParser.DAY, i);
-		}
-		public List<TerminalNode> BIS() { return getTokens(OpeningHoursParser.BIS); }
-		public TerminalNode BIS(int i) {
-			return getToken(OpeningHoursParser.BIS, i);
-		}
-		public List<TerminalNode> TIME() { return getTokens(OpeningHoursParser.TIME); }
-		public TerminalNode TIME(int i) {
-			return getToken(OpeningHoursParser.TIME, i);
-		}
-		public TerminalNode UHR() { return getToken(OpeningHoursParser.UHR, 0); }
-		public TerminalNode RUHETAG() { return getToken(OpeningHoursParser.RUHETAG, 0); }
-		public OpeningRuleContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_openingRule; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof OpeningHoursParserListener ) ((OpeningHoursParserListener)listener).enterOpeningRule(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof OpeningHoursParserListener ) ((OpeningHoursParserListener)listener).exitOpeningRule(this);
-		}
-	}
-
-	public final OpeningRuleContext openingRule() throws RecognitionException {
-		OpeningRuleContext _localctx = new OpeningRuleContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_openingRule);
-		try {
-			setState(54);
-			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				{
-				setState(40);
-				match(DAY);
-				setState(41);
-				match(BIS);
-				setState(42);
-				match(DAY);
-				setState(43);
-				match(TIME);
-				setState(44);
-				match(BIS);
-				setState(45);
-				match(TIME);
-				setState(46);
-				match(UHR);
-				}
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				{
-				setState(47);
-				match(DAY);
-				setState(48);
-				match(TIME);
-				setState(49);
-				match(BIS);
-				setState(50);
-				match(TIME);
-				setState(51);
-				match(UHR);
-				}
-				}
-				break;
-			case 3:
-				enterOuterAlt(_localctx, 3);
-				{
-				{
-				setState(52);
-				match(DAY);
-				setState(53);
-				match(RUHETAG);
-				}
-				}
-				break;
+			setState(32);
+			match(DAY);
+			setState(33);
+			match(BIS);
+			setState(34);
+			match(DAY);
+			setState(35);
+			match(TIME);
+			setState(36);
+			match(BIS);
+			setState(37);
+			match(TIME);
+			setState(38);
+			match(UHR);
 			}
 		}
 		catch (RecognitionException re) {
@@ -445,42 +351,33 @@ public class OpeningHoursParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\u0004\u0001\u000b9\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
-		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0002\u0004\u0007\u0004\u0001"+
-		"\u0000\u0001\u0000\u0003\u0000\r\b\u0000\u0004\u0000\u000f\b\u0000\u000b"+
-		"\u0000\f\u0000\u0010\u0001\u0000\u0001\u0000\u0001\u0001\u0001\u0001\u0001"+
-		"\u0001\u0004\u0001\u0018\b\u0001\u000b\u0001\f\u0001\u0019\u0004\u0001"+
-		"\u001c\b\u0001\u000b\u0001\f\u0001\u001d\u0001\u0002\u0004\u0002!\b\u0002"+
-		"\u000b\u0002\f\u0002\"\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003"+
-		"\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004"+
-		"\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004\u0001\u0004"+
-		"\u0001\u0004\u0001\u0004\u0003\u00047\b\u0004\u0001\u0004\u0000\u0000"+
-		"\u0005\u0000\u0002\u0004\u0006\b\u0000\u0000:\u0000\u000e\u0001\u0000"+
-		"\u0000\u0000\u0002\u0014\u0001\u0000\u0000\u0000\u0004 \u0001\u0000\u0000"+
-		"\u0000\u0006$\u0001\u0000\u0000\u0000\b6\u0001\u0000\u0000\u0000\n\f\u0003"+
-		"\u0002\u0001\u0000\u000b\r\u0005\u0001\u0000\u0000\f\u000b\u0001\u0000"+
-		"\u0000\u0000\f\r\u0001\u0000\u0000\u0000\r\u000f\u0001\u0000\u0000\u0000"+
-		"\u000e\n\u0001\u0000\u0000\u0000\u000f\u0010\u0001\u0000\u0000\u0000\u0010"+
-		"\u000e\u0001\u0000\u0000\u0000\u0010\u0011\u0001\u0000\u0000\u0000\u0011"+
-		"\u0012\u0001\u0000\u0000\u0000\u0012\u0013\u0005\u0000\u0000\u0001\u0013"+
-		"\u0001\u0001\u0000\u0000\u0000\u0014\u001b\u0003\u0004\u0002\u0000\u0015"+
-		"\u0017\u0003\u0006\u0003\u0000\u0016\u0018\u0003\b\u0004\u0000\u0017\u0016"+
-		"\u0001\u0000\u0000\u0000\u0018\u0019\u0001\u0000\u0000\u0000\u0019\u0017"+
-		"\u0001\u0000\u0000\u0000\u0019\u001a\u0001\u0000\u0000\u0000\u001a\u001c"+
-		"\u0001\u0000\u0000\u0000\u001b\u0015\u0001\u0000\u0000\u0000\u001c\u001d"+
-		"\u0001\u0000\u0000\u0000\u001d\u001b\u0001\u0000\u0000\u0000\u001d\u001e"+
-		"\u0001\u0000\u0000\u0000\u001e\u0003\u0001\u0000\u0000\u0000\u001f!\u0005"+
-		"\n\u0000\u0000 \u001f\u0001\u0000\u0000\u0000!\"\u0001\u0000\u0000\u0000"+
-		"\" \u0001\u0000\u0000\u0000\"#\u0001\u0000\u0000\u0000#\u0005\u0001\u0000"+
-		"\u0000\u0000$%\u0005\u0004\u0000\u0000%&\u0005\u0006\u0000\u0000&\'\u0005"+
-		"\u0004\u0000\u0000\'\u0007\u0001\u0000\u0000\u0000()\u0005\t\u0000\u0000"+
-		")*\u0005\u0006\u0000\u0000*+\u0005\t\u0000\u0000+,\u0005\u0005\u0000\u0000"+
-		",-\u0005\u0006\u0000\u0000-.\u0005\u0005\u0000\u0000.7\u0005\b\u0000\u0000"+
-		"/0\u0005\t\u0000\u000001\u0005\u0005\u0000\u000012\u0005\u0006\u0000\u0000"+
-		"23\u0005\u0005\u0000\u000037\u0005\b\u0000\u000045\u0005\t\u0000\u0000"+
-		"57\u0005\u0007\u0000\u00006(\u0001\u0000\u0000\u00006/\u0001\u0000\u0000"+
-		"\u000064\u0001\u0000\u0000\u00007\t\u0001\u0000\u0000\u0000\u0006\f\u0010"+
-		"\u0019\u001d\"6";
+		"\u0004\u0001\u000b)\u0002\u0000\u0007\u0000\u0002\u0001\u0007\u0001\u0002"+
+		"\u0002\u0007\u0002\u0002\u0003\u0007\u0003\u0001\u0000\u0001\u0000\u0003"+
+		"\u0000\u000b\b\u0000\u0004\u0000\r\b\u0000\u000b\u0000\f\u0000\u000e\u0001"+
+		"\u0000\u0001\u0000\u0001\u0001\u0001\u0001\u0004\u0001\u0015\b\u0001\u000b"+
+		"\u0001\f\u0001\u0016\u0001\u0002\u0004\u0002\u001a\b\u0002\u000b\u0002"+
+		"\f\u0002\u001b\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003"+
+		"\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003\u0001\u0003"+
+		"\u0001\u0003\u0000\u0000\u0004\u0000\u0002\u0004\u0006\u0000\u0000(\u0000"+
+		"\f\u0001\u0000\u0000\u0000\u0002\u0012\u0001\u0000\u0000\u0000\u0004\u0019"+
+		"\u0001\u0000\u0000\u0000\u0006\u001d\u0001\u0000\u0000\u0000\b\n\u0003"+
+		"\u0002\u0001\u0000\t\u000b\u0005\u0001\u0000\u0000\n\t\u0001\u0000\u0000"+
+		"\u0000\n\u000b\u0001\u0000\u0000\u0000\u000b\r\u0001\u0000\u0000\u0000"+
+		"\f\b\u0001\u0000\u0000\u0000\r\u000e\u0001\u0000\u0000\u0000\u000e\f\u0001"+
+		"\u0000\u0000\u0000\u000e\u000f\u0001\u0000\u0000\u0000\u000f\u0010\u0001"+
+		"\u0000\u0000\u0000\u0010\u0011\u0005\u0000\u0000\u0001\u0011\u0001\u0001"+
+		"\u0000\u0000\u0000\u0012\u0014\u0003\u0004\u0002\u0000\u0013\u0015\u0003"+
+		"\u0006\u0003\u0000\u0014\u0013\u0001\u0000\u0000\u0000\u0015\u0016\u0001"+
+		"\u0000\u0000\u0000\u0016\u0014\u0001\u0000\u0000\u0000\u0016\u0017\u0001"+
+		"\u0000\u0000\u0000\u0017\u0003\u0001\u0000\u0000\u0000\u0018\u001a\u0005"+
+		"\n\u0000\u0000\u0019\u0018\u0001\u0000\u0000\u0000\u001a\u001b\u0001\u0000"+
+		"\u0000\u0000\u001b\u0019\u0001\u0000\u0000\u0000\u001b\u001c\u0001\u0000"+
+		"\u0000\u0000\u001c\u0005\u0001\u0000\u0000\u0000\u001d\u001e\u0005\u0004"+
+		"\u0000\u0000\u001e\u001f\u0005\u0006\u0000\u0000\u001f \u0005\u0004\u0000"+
+		"\u0000 !\u0005\t\u0000\u0000!\"\u0005\u0006\u0000\u0000\"#\u0005\t\u0000"+
+		"\u0000#$\u0005\u0005\u0000\u0000$%\u0005\u0006\u0000\u0000%&\u0005\u0005"+
+		"\u0000\u0000&\'\u0005\b\u0000\u0000\'\u0007\u0001\u0000\u0000\u0000\u0004"+
+		"\n\u000e\u0016\u001b";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

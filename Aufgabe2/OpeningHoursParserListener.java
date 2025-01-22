@@ -46,14 +46,4 @@ public interface OpeningHoursParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDateRange(OpeningHoursParser.DateRangeContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link OpeningHoursParser#openingRule}.
-	 * @param ctx the parse tree
-	 */
-	void enterOpeningRule(OpeningHoursParser.OpeningRuleContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link OpeningHoursParser#openingRule}.
-	 * @param ctx the parse tree
-	 */
-	void exitOpeningRule(OpeningHoursParser.OpeningRuleContext ctx);
 }

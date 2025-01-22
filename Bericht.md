@@ -388,23 +388,16 @@ public class StaticSemanticsChecker extends OpeningHoursParserBaseListener {
 
     @Override
     public void exitDateRange(OpeningHoursParser.DateRangeContext ctx) {
+        String startTime = ctx.TIME(0).getText();
+        String endTime = ctx.TIME(1).getText();
         String startDate = ctx.DATE(0).getText();
         String endDate = ctx.DATE(1).getText();
 
         if (!isValidDate(startDate) || !isValidDate(endDate)) {
             errors.add("Ungueltiges Datum im Bereich: " + startDate + " bis " + endDate);
         }
-    }
-
-    @Override
-    public void exitOpeningRule(OpeningHoursParser.OpeningRuleContext ctx) {
-        if (ctx.TIME().size() == 2) {
-            String startTime = ctx.TIME(0).getText();
-            String endTime = ctx.TIME(1).getText();
-
-            if (!isValidTimeRange(startTime, endTime)) {
-                errors.add("Ungueltiger Zeitraum: " + startTime + " bis " + endTime + " Uhr");
-            }
+        if (!isValidTimeRange(startTime, endTime)) {
+            errors.add("Ungueltiger Zeitraum: " + startTime + " bis " + endTime + " Uhr");
         }
     }
 
@@ -462,47 +455,75 @@ import java.util.*;
 public class OpeningHoursInterpreter {
     private final List<Location> locations;
     private static final String TIME_FORMAT = "HH:mm";
+    private static final String DATE_FORMAT = "dd.mm";
+
+    private static final List<String> DAYS_OF_WEEK = Arrays.asList(
+        "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"
+    );
 
     public OpeningHoursInterpreter(List<Location> locations) {
+        System.out.println("Creating OpeningHoursInterpreter with " + locations.size() + " locations");
         this.locations = locations;
     }
 
-    public List<String> getOpenLocations(String day, String time) {
+    public List<String> getOpenLocations(String day, String date, String time) {
         List<String> openLocations = new ArrayList<>();
         for (Location location : locations) {
-            if (isLocationOpen(location, day, time)) {
+            System.out.println("Checking " + location.name);
+            if (isLocationOpen(location, day, date, time)) {
                 openLocations.add(location.name);
             }
         }
         return openLocations;
     }
 
-    public boolean isOpen(String locationName, String day, String time) {
+    public boolean isOpen(String locationName, String day, String date, String time) {
         for (Location location : locations) {
-            if (location.name.equalsIgnoreCase(locationName) && isLocationOpen(location, day, time)) {
+            if (location.name.equalsIgnoreCase(locationName) && isLocationOpen(location, day, date, time)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isLocationOpen(Location location, String day, String time) {
+    private boolean isLocationOpen(Location location, String day, String date, String time) {
         for (DateRange dateRange : location.dateRanges) {
-            for (OpeningRule rule : dateRange.openingRules) {
-                if (rule instanceof OpenHoursRule openRule) {
-                    if (openRule.startDay.equals(day) || openRule.endDay.equals(day)) {
-                        if (isValidTimeRange(openRule.startTime, openRule.endTime, time)) {
-                            return true;
-                        }
-                    }
-                } else if (rule instanceof RestDayRule restRule) {
-                    if (restRule.day.equals(day)) {
-                        return false;
-                    }
-                }
+            if (isWithinDateRange(dateRange, date) && isValidTimeRange(dateRange.startTime, dateRange.endTime, time) && isValidDay(dateRange, day)) {
+                System.out.println(location.name + " is open on " + date + " at " + time);
+                return true;
             }
         }
+        System.out.println(location.name + " is closed on " + date + " at " + time);
         return false;
+    }
+
+    private boolean isWithinDateRange(DateRange dateRange, String checkDate) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+            Date start = sdf.parse(dateRange.startDate);
+            Date end = sdf.parse(dateRange.endDate);
+            Date check = sdf.parse(checkDate);
+            return !check.before(start) && !check.after(end);
+        } catch (ParseException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidDay(DateRange dateRange, String day) {
+        if (!DAYS_OF_WEEK.contains(day)) {
+            System.err.println("Invalid day: " + day);
+            return false;
+        }
+
+        int startDayIndex = DAYS_OF_WEEK.indexOf(dateRange.startDay);
+        int endDayIndex = DAYS_OF_WEEK.indexOf(dateRange.endDay);
+        int dayIndex = DAYS_OF_WEEK.indexOf(day);
+
+        if (startDayIndex <= endDayIndex) {
+            return dayIndex >= startDayIndex && dayIndex <= endDayIndex;
+        } else {
+            return dayIndex >= startDayIndex || dayIndex <= endDayIndex;
+        }
     }
 
     private boolean isValidTimeRange(String startTime, String endTime, String checkTime) {
@@ -523,27 +544,137 @@ Main
 ```
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
-
 import java.nio.file.*;
-import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
+
+class ASTBuilder extends OpeningHoursParserBaseVisitor<Object> {
+    private final List<Location> locations = new ArrayList<>();
+    public ASTBuilder() {
+        System.out.println("ASTBuilder created!");
+    }
+    
+    @Override
+    public OpeningHoursProgram visitOpeningHoursFile(OpeningHoursParser.OpeningHoursFileContext ctx) {
+        System.out.println("visitOpeningHoursFile() was called!");
+        
+        if (ctx == null) {
+            System.err.println("Error: OpeningHoursFileContext is null.");
+            return null;
+        }
+    
+        for (OpeningHoursParser.OpeningHoursContext locationCtx : ctx.openingHours()) {
+            Location location = (Location) visitOpeningHours(locationCtx);
+            if (location != null) {
+                locations.add(location);
+            } else {
+                System.err.println("visitOpeningHours returned null for: " + locationCtx.getText());
+            }
+        }
+    
+        if (locations.isEmpty()) {
+            System.err.println(" Error: No valid locations found.");
+            return null;
+        }
+    
+        OpeningHoursProgram program = new OpeningHoursProgram(locations);
+        System.out.println("Created OpeningHoursProgram with " + locations.size() + " locations.");
+        return program;
+    }
+    
+    @Override
+    public Object visitOpeningHours(OpeningHoursParser.OpeningHoursContext ctx) {
+        if (ctx == null) {
+            System.err.println("visitOpeningHours: Context is null.");
+            return null;
+        }
+        
+        if (ctx.location() == null || ctx.location().IDENTIFIER().isEmpty()) {
+            System.err.println("visitOpeningHours: No valid location found.");
+            return null;
+        }
+    
+        String name = String.join(" ", ctx.location().IDENTIFIER().stream().map(ParseTree::getText).toList());
+        System.out.println("Visiting OpeningHours: " + name);
+    
+        List<DateRange> dateRanges = new ArrayList<>();
+        for (OpeningHoursParser.DateRangeContext dateCtx : ctx.dateRange()) {
+            DateRange dateRange = (DateRange) visitDateRange(dateCtx);
+            if (dateRange != null) {
+                dateRanges.add(dateRange);
+            } else {
+                System.err.println("visitDateRange returned null for: " + dateCtx.getText());
+            }
+        }
+    
+        if (dateRanges.isEmpty()) {
+            System.err.println("visitOpeningHours: No valid date ranges for " + name);
+            return null;
+        }
+    
+        Location location = new Location(name, dateRanges);
+        System.out.println("Created Location: " + location.name + " with " + dateRanges.size() + " date ranges");
+        return location;
+    }
+    
+
+    @Override
+    public Object visitDateRange(OpeningHoursParser.DateRangeContext ctx) {
+        System.out.println("Visiting DateRange: " + ctx.getText());
+    
+        if (ctx.DATE().size() < 2 || ctx.DAY().size() < 2 || ctx.TIME().size() < 2) {
+            System.err.println("Error: Incomplete DateRange: " + ctx.getText());
+            return null;
+        }
+    
+        String startDate = ctx.DATE(0).getText();
+        String endDate = ctx.DATE(1).getText();
+        String startDay = ctx.DAY(0).getText();
+        String endDay = ctx.DAY(1).getText();
+        String startTime = ctx.TIME(0).getText();
+        String endTime = ctx.TIME(1).getText();
+    
+        DateRange dateRange = new DateRange(startDate, endDate, startDay, endDay, startTime, endTime);
+        System.out.println("Created DateRange: " + startDate + " to " + endDate + ", " + startTime + " to " + endTime);
+    
+        return dateRange;
+    }
+    
+}
+
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        // Read input file
         String inputFilePath = "../Aufgabe2/OeffnungszeitenText.txt";
         String input = Files.readString(Path.of(inputFilePath));
 
-        // Lexical and syntactic analysis
+        // Lexikalische und syntaktische Analyse
         System.out.println("Aufgabe 3a");
         CharStream charStream = CharStreams.fromString(input);
         OpeningHoursLexer lexer = new OpeningHoursLexer(charStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         OpeningHoursParser parser = new OpeningHoursParser(tokens);
 
+        // Fehlerprüfung beim Parsen
+        parser.removeErrorListeners();
+        parser.addErrorListener(new DiagnosticErrorListener());
         ParseTree tree = parser.openingHoursFile();
+        System.out.println(tree.toStringTree(parser));
+
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            System.err.println("Syntaxfehler erkannt. Abbruch.");
+            return;
+        }
+
+        ASTBuilder astBuilder = new ASTBuilder();
+        System.out.println("Parser tree structure:");
+        System.out.println(tree.toStringTree(parser));
+        
+        OpeningHoursProgram ast = (OpeningHoursProgram) astBuilder.visitOpeningHoursFile((OpeningHoursParser.OpeningHoursFileContext) tree);
+
+        System.out.println("ASTBuilder finished.");
 
         // Static Semantics Check
         StaticSemanticsChecker semanticsChecker = new StaticSemanticsChecker();
@@ -556,36 +687,24 @@ public class Main {
             System.out.println("Static semantics errors:");
             semanticsChecker.getErrors().forEach(System.out::println);
         }
-        
+
+        // Interpreter für die dynamische Semantik
         System.out.println("--------------------");
         System.out.println("Aufgabe 3b");
 
-        List<Location> locations = new ArrayList<>();
-        
-        List<OpeningRule> rules = new ArrayList<>();
-        rules.add(new OpenHoursRule("Montag", "Freitag", "09:00", "17:00"));
-        rules.add(new RestDayRule("Sonntag"));
+        if (ast == null) {
+            System.err.println("Fehler beim Erstellen des AST. Abbruch.");
+            // return;
+        }
 
-        List<DateRange> dateRanges = new ArrayList<>();
-        dateRanges.add(new DateRange("11.01.", "30.2.", rules));
+        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter(ast.locations);
+        System.out.println("Interpreter erstellt.");
 
-        locations.add(new Location("Baeckerei Taeglich Brot", dateRanges));
-        locations.add(new Location("Supermarkt", dateRanges));
-
-        OpeningHoursInterpreter interpreter = new OpeningHoursInterpreter(locations);
-
-        String day = "Montag";
-        String day2 = "Sonntag";
-        boolean isOpen = interpreter.isOpen("Baeckerei Taeglich Brot", day, getTimeNow());
-        System.out.println("Ist 'Baeckerei Taeglich Brot' am " + day + " um " + getTimeNow() + " geoeffnet? " + isOpen);
-        boolean isOpen2 = interpreter.isOpen("Baeckerei Taeglich Brot", day2, getTimeNow());
-        System.out.println("Ist 'Baeckerei Taeglich Brot' am " + day2 + " um " + getTimeNow() + " geoeffnet? " + isOpen2);
-        System.out.println("Offene Locations " + day + " " + getTimeNow() + ": " + interpreter.getOpenLocations(day, getTimeNow()));
-    }
-
-    private static String getTimeNow() {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
-        return dtf.format(java.time.LocalTime.now());
+        String day = "Dienstag";
+        String time = "10:00";
+        String date = "20.01";
+        List<String> openLocations = interpreter.getOpenLocations(day, date, time);
+        System.out.println("Offene Locations am " + date + ", " + day + " um " + time + ": " + openLocations);
     }
 }
 ```
